@@ -1,0 +1,8 @@
+#let xi = rgb(106,177,208)
+#let yj = rgb(135,108,173)
+#let newlink = rgb(212,62,136)
+#let oldlink = rgb(200,200,200)
+#let activeset = rgb(210, 210, 210)
+#let activesetfont = rgb(130, 130, 130)
+#let gtheta = rgb(51,159,52)
+#let htheta = rgb(3,50,178)
