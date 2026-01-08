@@ -80,97 +80,112 @@ $
 
   - Modern pipelines: forecasting is *the* pretext task for feature learning
 
-= Statistical models
+= Old-school models
 
 == Additive decomposition
 
-- Typical (old-school) assumption: Time series can be decomposed into: Trend, Seasonality, and Residuals in an additive way:
+- Typical assumption: Time series can be decomposed into: Trend, Seasonality, and Residuals in an additive way:
 
   $
   x_t = T_t + S_t + R_t
   $
 
+  #align(center)[
+    #image("fig/stl.svg", width: 90%)
+  ]
+
 == ARIMA models
 
-- AR, MA, ARMA, ARIMA
+*Autoregressive AR(p)*
+
+$
+  x_t = c + sum_(i=1)^p phi_i x_(t-i) + epsilon_t
+$
+- Linear regression model based on a window of past values of size $p$.
+- Captures temporal correlations via lags.
+
+*Moving Average MA(q)*
+
+$
+  x_t = c + sum_(j=1)^q theta_j epsilon_(t-j) + epsilon_t
+$
+- Models the effect of past residuals on the current value.
+
+#pagebreak()
+
+*ARMA(p,q)*
+
+$
+  x_t = c + sum_(i=1)^p phi_i x_(t-i) + sum_(j=1)^q theta_j epsilon_(t-j) + epsilon_t
+$
+- Assumes stationarity.
+
+*ARIMA(p,d,q)*
+
+- Introduces differencing of order $d$ to handle non-stationary trends.
+- If $y_t = nabla^d x_t$ (difference of order $d$), then $y_t$ follows an ARMA(p,q).
 
 = Evaluation metrics and losses
 
 == Metrics
 
-- MAE, RMSE, MASE, sMAPE
+*Mean Squared Error MSE*
 
-== Alignment-based losses
+$
+  "MSE"(x_t, hat(x)_t) = 1/N sum_(t=1)^N ||x_t - hat(x)_t||_2^2
+$
 
-- softDTW, TDI, DILATE
+*Mean Absolute Error MAE*
 
-// - Objective: Understand fundamental concepts and common tasks.
-// - Plan: definitions → tasks → focus on forecasting → classical non-deep models.
+$
+  "MAE"(x_t, hat(x)_t) = 1/N sum_(t=1)^N ||x_t - hat(x)_t||_1
+$
 
-// == What is a time series?
+// *Mean Absolute Scaled Error MASE*
 
-// - A sequence of observations indexed by time: $x_t$ for $t=1,2,dots$.
-// - Sampling: discrete (e.g., daily, hourly) or continuous (often discretized).
-// - Key properties: trend, seasonality, noise, stationarity.
+// $
+//   "MASE"(x_t, hat(x)_t) = (1/N sum_(t=1)^N |x_t - hat(x)_t|)/(1/(N-1) sum_(t=2)^N |x_t - x_(t-1)|)
+// $
 
-// == Typical time-series tasks
+*Symmetric Mean Absolute Percentage Error sMAPE*
 
-// - Forecasting: estimate $x_{t+h}$ for $h>0$.
-// - Anomaly detection: find unexpected points or segments.
-// - Classification / labeling: assign a class to a series or segment.
-// - Segmentation / change-point detection: detect structural breaks.
-// - Imputation: fill missing values.
+$
+  "sMAPE"(x_t, hat(x)_t) = 2/N sum_(t=1)^N (||x_t - hat(x)_t||_1) / (||x_t||_1 + ||hat(x)_t||_1)
+$
 
-// == Why focus on forecasting?
+== Differentiable losses
 
-// - Widely used in practice (finance, energy, logistics, health).
-// - Often used as a pretext task in modern pipelines: pretraining, quick evaluation, feature generation.
-// - Easy to compare classical models and ML/DL approaches on forecasting tasks.
+- MSE is the _de facto_ standard loss for forecasting
+- Shape-based losses exist however, eg:
 
-// == Classical models — AR / MA / ARMA / ARIMA
+#align(center)[
+  #image("fig/dtw_mse.svg", width: 100%)
+]
 
-// **Autoregressive AR(p)**
+== Dynamic Time Warping (DTW)
 
-// - Form: $x_t = c + sum_{i=1}^p phi_i x_{t-i} + epsilon_t$.
-// - Captures temporal correlations via lags.
+- Aligns two time series by warping the time axis
+- Useful when similar patterns occur at different time locations
+- Relies on solving the following optimization problem:
 
-// **Moving Average MA(q)**
+$
+  "DTW"(X, hat(X)) = min_(pi in Pi) sum_(t=1)^T ||x_(pi_1(t)) - hat(x)_(pi_2(t))||_2^2
+$
 
-// - Form: $x_t = mu + epsilon_t + sum_{j=1}^q theta_j epsilon_{t-j}$.
-// - Models the effect of past shocks (noise) on the current value.
+- Where $Pi$ is the set of all admissible alignments between the two series
+- Can be solved via dynamic programming in $O(T^2)$ time
 
-// **ARMA(p,q)**
+== soft-DTW
 
-// - $x_t = c + sum_{i=1}^p phi_i x_{t-i} + epsilon_t + sum_{j=1}^q theta_j epsilon_{t-j}$.
-// - Requires stationarity.
+- DTW is not differentiable
+- soft-DTW is a differentiable variant
+- Replaces min by soft-min in the DP recursion:
 
-// **ARIMA(p,d,q)**
+$
+  "softDTW"^gamma (X, hat(X)) = "softmin"^gamma_(pi in Pi) sum_(t=1)^T ||x_(pi_1(t)) - hat(x)_(pi_2(t))||_2^2
+$
 
-// - Introduces differencing of order $d$ to handle non-stationary trends.
-// - If $y_t = nabla^d x_t$ (difference of order $d$), then $y_t$ follows an ARMA(p,q).
-
-// == Handling trend and seasonality
-
-// - Differencing: $nabla x_t = x_t - x_{t-1}$ (simple detrending).
-// - Decomposition: $x_t = T_t + S_t + R_t$ (trend, seasonal, remainder) — methods: STL, additive/multiplicative decomposition.
-// - SARIMA models for seasonality (seasonal p,d,q with period $s$).
-// - Regression with exogenous variables (ARIMAX) to include covariates.
-
-// == Alternative non-deep methods
-
-// - Exponential smoothing (SES, Holt, Holt–Winters): strong practical performance for trend/seasonal series, simple to implement.
-// - Transform-based methods (Box-Cox), decomposition, filtering (HP-filter).
-// - Model selection: ACF/PACF, information criteria (AIC, BIC), time-series cross-validation.
-
-// == Practical tips
-
-// - Always visualize: trend/seasonality, ACF/PACF.
-// - Check stationarity (ADF, KPSS); difference if necessary.
-// - Prefer chronological validation (rolling / expanding windows) over random CV.
-// - In modern pipelines: use forecasting as a training/evaluation signal for features/self-supervision.
-
-// == References
-
-// - Hyndman & Athanasopoulos — "Forecasting: principles and practice" (ARIMA, smoothing chapters).
-// - Box & Jenkins — classical ARIMA theory.
-
+- Can be used as a loss in deep learning models
+- Hyperparameter $gamma > 0$ controls the smoothness
+  - $gamma -> 0$: soft-DTW approaches DTW
+  - Large $gamma$: more smoothing (MSE-like behaviour)
