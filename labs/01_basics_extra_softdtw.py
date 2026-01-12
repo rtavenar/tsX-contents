@@ -28,8 +28,9 @@ for ts in X_subset:
 # **Question.** In the following, we will try to predict the end of the time series based on the first 150 time points. What do you observe? Prepare a dataloader for this forecasting problem.
 
 # %% + tags=["solution"]
-X_input = torch.tensor(X_subset[:, :150], dtype=torch.float32)
-y_target = torch.tensor(X_subset[:, 150:], dtype=torch.float32)
+threshold = 150
+X_input = torch.tensor(X_subset[:, :threshold], dtype=torch.float32)
+y_target = torch.tensor(X_subset[:, threshold:], dtype=torch.float32)
 
 batch_size = 16
 train_ds = TensorDataset(X_input, y_target)
@@ -53,8 +54,8 @@ class SimpleMLP(torch.nn.Module):
         return x.unsqueeze(dim=-1)
 
 
-mse_model = SimpleMLP(150, 256, 125)
-sdtw_model = SimpleMLP(150, 256, 125)
+mse_model = SimpleMLP(threshold, 256, 275 - threshold)
+sdtw_model = SimpleMLP(threshold, 256, 275 - threshold)
 
 
 def train_model(model, loader, criterion, epochs=200, lr=1e-3, device="cpu"):
@@ -68,7 +69,7 @@ def train_model(model, loader, criterion, epochs=200, lr=1e-3, device="cpu"):
             if isinstance(criterion, torch.nn.MSELoss):
                 loss = criterion(pred.squeeze(-1), yb.squeeze(-1))
             else:
-                loss = criterion(pred, yb)
+                loss = criterion(pred, yb).mean()
             opt.zero_grad()
             loss.backward()
             opt.step()
@@ -103,10 +104,10 @@ print(f"softDTW-trained model MSE (eval metric is MSE): {sdtw_score:.4f}")
 # Qualitative comparison on a few series
 for idx in [0, 1, 2]:
     plt.figure(figsize=(7, 3))
-    plt.plot(range(150), X_subset[idx, :150, 0], label="input (first 150)")
-    plt.plot(range(150, 275), y_target[idx, :, 0], label="true tail")
-    plt.plot(range(150, 275), mse_pred[idx], label="MSE pred")
-    plt.plot(range(150, 275), sdtw_pred[idx], label="softDTW pred")
+    plt.plot(range(threshold), X_subset[idx, :threshold, 0], label=f"input (first {threshold})")
+    plt.plot(range(threshold, 275), y_target[idx, :, 0], label="true tail")
+    plt.plot(range(threshold, 275), mse_pred[idx], label="MSE pred")
+    plt.plot(range(threshold, 275), sdtw_pred[idx], label="softDTW pred")
     plt.legend()
     plt.title(f"Series {idx}")
     plt.show()
