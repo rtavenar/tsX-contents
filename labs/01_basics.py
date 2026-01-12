@@ -412,3 +412,86 @@ plt.legend()
 plt.xlabel("Epochs")
 plt.ylabel("Loss (MSE)")
 plt.show()
+
+# %% [markdown]
+# **Bonus question.** Given what you know about this time series, do you expect seasonality? 
+# Implement an additional layer for your scaled differenced AR model that performs seasonal differencing using a lag equal to the expected period $\Delta_t$:
+#
+# $x_t' = x_t - x_{t-\Delta_t}$
+#
+# Does it help improve overall performance?
+
+# %% + tags=["solution"]
+class SeasonalDifferencing(torch.nn.Module):
+    """Seasonal differencing: x_t' = x_t - x_{t-lag}"""
+    
+    def __init__(self, lag: int):
+        super().__init__()
+        self.lag = lag
+    
+    def forward(self, x):
+        return x[:, self.lag:] - x[:, :-self.lag]
+
+
+class SeasonalIntegration(torch.nn.Module):
+    """Inverse of seasonal differencing: x_t = x_{t-lag} + x_t'"""
+    
+    def __init__(self, lag: int):
+        super().__init__()
+        self.lag = lag
+    
+    def forward(self, last_season_values, diff_preds):
+        horizon = diff_preds.shape[1]
+        preds = []
+        extended_history = last_season_values  # (batch, lag)
+        
+        for t in range(horizon):
+            # The base value is from 'lag' steps ago
+            if t < self.lag:
+                # Use value from last_season_values
+                base_value = extended_history[:, t:t+1]
+            else:
+                # Use previously predicted value
+                base_value = preds[t - self.lag]
+            
+            # Compute prediction: x_t = x_{t-lag} + diff
+            new_pred = base_value + diff_preds[:, t:t+1]
+            preds.append(new_pred)
+        
+        return torch.cat(preds, dim=1)
+
+
+class SeasonalDifferencedScaledARModel(torch.nn.Module):
+    """AR model with seasonal differencing and scaling"""
+    
+    def __init__(self, window: int, horizon: int, mean: float, std: float, lag: int = 24):
+        super().__init__()
+        assert(lag < window)
+        self.scaler = StandardScaler(mean, std)
+        self.seasonal_diff = SeasonalDifferencing(lag=lag)
+        self.ar = ARModel(window - lag, horizon)  # Window size reduced by lag
+        self.seasonal_integrate = SeasonalIntegration(lag=lag)
+        self.lag = lag
+    
+    def forward(self, past):
+        scaled_past = self.scaler(past)
+        last_season_values = scaled_past[:, -self.lag:].detach() # Save for later (integration)
+        seasonally_differenced = self.seasonal_diff(scaled_past)
+        pred_diffs = self.ar(seasonally_differenced)
+        scaled_preds = self.seasonal_integrate(last_season_values, pred_diffs)
+        return self.scaler.inverse(scaled_preds)
+
+# Assuming daily seasonality for hourly data (lag=24 hours)
+mean, std = compute_scaler(train_dl)
+seasonal_diff_scaled_ar_model = SeasonalDifferencedScaledARModel(
+    window=window, 
+    horizon=horizon, 
+    mean=mean, 
+    std=std, 
+    lag=24  # Daily seasonality for hourly data
+)
+optimizer = torch.optim.Adam(seasonal_diff_scaled_ar_model.parameters(), lr=1e-3)
+criterion = torch.nn.MSELoss()
+logs_SeasonalDifferencedScaledAR = train_and_valid_loop(
+    seasonal_diff_scaled_ar_model, train_dl, valid_dl, optimizer, criterion, n_epochs
+)
