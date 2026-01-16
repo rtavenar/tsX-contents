@@ -5,3 +5,5 @@ notes.md
 syllabus_v0.md
 syllabus.md
 labs/0*.md
+labs/xLSTMTime
+__pycache__/
