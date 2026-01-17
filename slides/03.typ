@@ -34,12 +34,25 @@
 
 == Illustration of self-attention
 
-#figure-placeholder(100%, 5em)
+$
+  A_i = "softmax"((Q K^top) / sqrt(d_k)) V "                " Y_i = V^top A_i
+$
+
+#align(center)[
+  #image-with-caption(
+    image("fig/attention_fleuret.svg", width: 70%),
+    [Source: Deep Learning Course, François Fleuret]
+  )
+]
 
 == Basic transformer architecture
 
-#figure-placeholder(100%, 5em)
-
+#align(center)[
+  #image-with-caption(
+    image("fig/transformer.svg", width: 40%),
+    [Source: "Attention is all you need" (NIPS'17)]
+  )
+]
 == Encoder-only vs Decoder-only for forecasting
 
 #align(center)[
