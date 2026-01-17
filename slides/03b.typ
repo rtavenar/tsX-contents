@@ -38,25 +38,23 @@
 
 *Direct forecasting*
 - Model outputs all $H$ future values in one forward pass
+  #align(center)[
+    #include "cetz/direct_forecasting.typ"
+  ]
 - Pros: No error accumulation, faster inference
 - Cons: Model must learn to predict all horizons simultaneously
-
-#align(center)[
-  #include "cetz/direct_forecasting.typ"
-]
 
 #pagebreak()
 
 *Autoregressive forecasting*
 - Model predicts $hat(x)_(t+1)$, then uses it to predict $hat(x)_(t+2)$, etc.
+  #align(center)[
+    #include "cetz/ar_forecasting.typ"
+  ]
 - Pros: Reuses same model, naturally handles variable horizons
 - Cons: 
   - Error accumulation, *exposure bias* (train/test mismatch)
   - Model needs to predict all modalities
-
-#align(center)[
-  #include "cetz/ar_forecasting.typ"
-]
 
 == Training strategies for AR case
 
@@ -65,7 +63,6 @@
 - *Training*: Train model to predict one step ahead \
   $cal(L) = 1/T sum_(t) ||x_(t+1) - hat(x)_(t+1)||^2$
 - *Inference*: Use model autoregressively for multi-step prediction
-
 - Advantage: Simple training procedure
 - Disadvantages:
   - Train/test mismatch: model sees ground truth during training but its own predictions during inference
@@ -123,16 +120,12 @@
 
 *1. Parametric distributions*
 - Model outputs parameters of a distribution (e.g., mean and variance for Gaussian)
-- $hat(mu)_(t+h), hat(sigma)_(t+h) = f(x_1, ..., x_t)$
-- Predict $x_(t+h) ~ cal(N)(hat(mu)_(t+h), hat(sigma)_(t+h)^2)$
+  - $hat(mu)_(t+h), hat(sigma)_(t+h) = f(x_1, ..., x_t)$
+  - Predict $x_(t+h) ~ cal(N)(hat(mu)_(t+h), hat(sigma)_(t+h)^2)$
 
 *2. Quantile regression*
 - Predict multiple quantiles (e.g., 10th, 50th, 90th percentiles)
 - Captures uncertainty without distributional assumptions
-
-*3. Sample-based methods*
-- Generate multiple samples from the model
-- Use ensemble or Monte Carlo methods
 
 == Parametric probabilistic models
 
@@ -177,9 +170,13 @@ $
 
 *Continuous Ranked Probability Score (CRPS)*
 
-TODO: add formula
+- Generalizes MAE to probabilistic forecasts
+- Main idea: how close is the CDF of the predicted distribution one of the ideal distribution (a Dirac at the true value)?
+  - CRPS: Area between the two CDFs
 
-#figure-placeholder(100%, 5em)
+#align(center)[
+  #image("fig/crps.svg", width: 50%)
+]
 
 == Summary
 
