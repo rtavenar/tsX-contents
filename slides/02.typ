@@ -20,7 +20,7 @@
   )
 )
 
-
+#set text(font: "Helvetica Neue", weight: "light")
 
 #title-slide()
 
@@ -60,7 +60,7 @@
   )
 ]
 
-== Temporal Convolution Network (TCN)
+== Temporal Convolution Network
 
 - Additional improvements:
   - Residual connections \
@@ -226,7 +226,7 @@ $
 
 #align(center)[
   #image-with-caption(
-    image("fig/xlstm.svg", width: 100%),
+    image("fig/xlstm.svg", width: 80%),
     [Source: "xLSTM: Extended Long Short-Term Memory" by Beck et al., NeurIPS 2024]
   )
 ]

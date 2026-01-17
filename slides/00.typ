@@ -19,15 +19,9 @@
   )
 )
 
-// #let envelope = symbol(
-//   "🖂",
-//   ("stamped", "🖃"),
-//   ("stamped.pen", "🖆"),
-//   ("lightning", "🖄"),
-//   ("fly", "🖅"),
-// )
 
-// // #envelope
+
+#set text(font: "Helvetica Neue", weight: "light")
 
 #title-slide()
 
@@ -36,7 +30,7 @@
 - Teacher: Romain Tavenard
   - Affiliation: IRISA-Inria, Univ. Rennes
   - Research interests: time series analysis, ML, optimal transport
-    Interested in an internship/PhD on these topics? $->$ ✉
+    - Interested in an internship/PhD on these topics? $->$ ✉
   - Email: romain.tavenard\@univ-rennes2.fr
 - Course organization
   - Mixed Lectures-Lab sessions: Mondays 09:15-12:45

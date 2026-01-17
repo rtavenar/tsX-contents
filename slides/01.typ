@@ -19,6 +19,8 @@
   )
 )
 
+#set text(font: "Helvetica Neue", weight: "light")
+
 #title-slide()
 
 == Definition
@@ -36,13 +38,11 @@ $
 
 == Classification / labeling
 
-- *Labeling*
-  - Assign a class label to each time point (or segment)
+- *Labeling*: Assign a class label to each time point (or segment)
   #align(center)[
     #include "cetz/labeling.typ"
   ]
-- *Classification*
-  - Assign a class label to a full series
+- *Classification*: Assign a class label to a full series
   #align(center)[
     #include "cetz/classification.typ"
   ]
