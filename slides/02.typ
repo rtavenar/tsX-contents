@@ -123,17 +123,37 @@ $
 - Difficult to learn in practice
   - Slow (lack of parallelism)
   - Vanishing gradients (hard to learn long-term dependencies) or exploding gradients (if $phi$ is unbounded)
+#image-with-caption(
+  image("fig/rnn_unroll.svg"),
+  [Source: #link("https://colah.github.io/posts/2015-08-Understanding-LSTMs/")[Christopher Olah's blog]]
+)
 
 == Gated Recurrent Unit (GRU)
 
 - At each time step, keep only part of the information
   - Through *gating mechanism*
 
-#align(center)[
-  #image-with-caption(
+#grid(columns: 2,
+      gutter: 1em,
+  image-with-caption(
     image("fig/gru.svg", width: 80%),
     [Source: #link("https://colah.github.io/posts/2015-08-Understanding-LSTMs/")[Christopher Olah's blog]]
-  )
+  ),
+  $
+    z_t &= sigma(#grad-disk(angle: 45deg)) " (update gate)" \
+    r_t &= sigma(#grad-disk(angle: -45deg)) " (reset gate)" \
+    tilde(h)_t &= phi(W dot x_t + R dot [r_t dot.o h_(t-1)]) \
+    h_t &= (1 - z_t) dot.o h_(t-1) + z_t dot.o tilde(h)_t
+  $
+)
+
+#place(
+  right + bottom,
+  dx: 2em
+)[
+  #grad-disk(from: xi, to: xi) $x_t$
+  #grad-disk(from: yj, to: yj) $h_(t-1)$
+  #grad-disk() Linear combination of $x_t$ and $h_(t-1)$
 ]
 
 == Long Short Term Memory (LSTM)
@@ -250,6 +270,11 @@ $
   $ 
     i_t &= exp(#grad-disk(angle: 45deg)) \
     f_t &= max(exp(#grad-disk()), sigma(#grad-disk()))
+  $
+  $=>$ Need normalization:
+  $ 
+    n_t &= f_t dot.o n_(t-1) + i_t \
+    h_t &= o_t dot.o C_t div.o n_t
   $
 - Multi-head: keep separate linear combinations per head
 
