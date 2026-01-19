@@ -21,6 +21,7 @@
 )
 
 #set text(font: "Helvetica Neue", weight: "light")
+#show link: underline
 
 #title-slide()
 
@@ -56,7 +57,7 @@
 #align(center)[
   #image-with-caption(
     image("fig/tcn_dilatedconvs.svg", width: 70%),
-    [Source: "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling", Bai et al.]
+    [Source: "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling", Bai et al., arXiV 2018]
   )
 ]
 
@@ -70,7 +71,7 @@
 #align(center)[
   #image-with-caption(
     image("fig/tcn_block.svg", width: 40%),
-    [Source: "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling", Bai et al.]
+    [Source: "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling", Bai et al., arXiV 2018]
   )
 ]
 
@@ -113,7 +114,7 @@ $
 )[
   #grad-disk(from: xi, to: xi) $x_t$
   #grad-disk(from: yj, to: yj) $h_(t-1)$
-  #grad-disk() Linear mixing of $x_t$ and $h_(t-1)$
+  #grad-disk() Linear combination of $x_t$ and $h_(t-1)$
 ]
 
 == "Vanilla" RNN properties
@@ -163,7 +164,7 @@ $
 )[
   #grad-disk(from: xi, to: xi) $x_t$
   #grad-disk(from: yj, to: yj) $h_(t-1)$
-  #grad-disk() Linear mixing of $x_t$ and $h_(t-1)$
+  #grad-disk() Linear combination of $x_t$ and $h_(t-1)$
 ]
 
 == Long Short Term Memory (LSTM)
@@ -183,7 +184,7 @@ $
 )[
   #grad-disk(from: xi, to: xi) $x_t$
   #grad-disk(from: yj, to: yj) $h_(t-1)$
-  #grad-disk() Linear mixing of $x_t$ and $h_(t-1)$
+  #grad-disk() Linear combination of $x_t$ and $h_(t-1)$
 ]
 
 == Long Short Term Memory (LSTM)
@@ -213,7 +214,7 @@ $
 )[
   #grad-disk(from: xi, to: xi) $x_t$
   #grad-disk(from: yj, to: yj) $h_(t-1)$
-  #grad-disk() Linear mixing of $x_t$ and $h_(t-1)$
+  #grad-disk() Linear combination of $x_t$ and $h_(t-1)$
 ]
 
 
@@ -250,7 +251,7 @@ $
     i_t &= exp(#grad-disk(angle: 45deg)) \
     f_t &= max(exp(#grad-disk()), sigma(#grad-disk()))
   $
-- Multi-head: keep separate linear mixings per head
+- Multi-head: keep separate linear combinations per head
 
 #place(
   right + bottom,
@@ -258,7 +259,7 @@ $
 )[
   #grad-disk(from: xi, to: xi) $x_t$
   #grad-disk(from: yj, to: yj) $h_(t-1)$
-  #grad-disk() Linear mixing of $x_t$ and $h_(t-1)$
+  #grad-disk() Linear combination of $x_t$ and $h_(t-1)$
 ]
 
 == xLSTM: focus on mLSTM layers
@@ -283,7 +284,7 @@ $
 )[
   #grad-disk(from: xi, to: xi) $x_t$
   #grad-disk(from: yj, to: yj) $h_(t-1)$
-  #grad-disk() Linear mixing of $x_t$ and $h_(t-1)$
+  #grad-disk() Linear combination of $x_t$ and $h_(t-1)$
 ]
 
 == xLSTM: Building blocks
