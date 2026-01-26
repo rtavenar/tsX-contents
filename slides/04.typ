@@ -57,12 +57,13 @@ Can we get:
 Latent state $x_t in RR^N$ evolves over time:
 
 $
-  x_(t+1) &= A x_t + B u_t \
-  y_t &= C x_t
+  dot(h) (t) &= A h (t) + B x (t) \
+  o (t) &= C h (t) + D x(t)
 $
 
-- $u_t$: input
-- $y_t$: output
+- $x (t)$: input
+- $o (t)$: output
+- $h (t)$: latent state
 
 #figure-placeholder(100%, 5em)
 
@@ -70,7 +71,7 @@ $
 
 == Intuition
 
-- $x_t$: compressed memory of the past
+- $h (t)$: compressed memory of the past
 - Linear dynamics over time
 - Used for decades in control & signal processing
 
@@ -96,7 +97,7 @@ SSMs become *sequence layers*
 A linear SSM defines a *convolution*:
 
 $
-  y = K * u
+  o = K * x
 $
 
 where:
