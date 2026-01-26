@@ -58,7 +58,7 @@
 
 == Training strategies for AR case
 
-*Strategy 1: Next-step training / AR inference*
+*Strategy 1: Next-step training / AR inference (_aka_ teacher forcing)*
 
 - *Training*: Train model to predict one step ahead \
   $cal(L) = 1/T sum_(t) ||x_(t+1) - hat(x)_(t+1)||^2$
