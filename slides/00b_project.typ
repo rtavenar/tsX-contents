@@ -41,3 +41,19 @@
   - A report is due on March 16th, 23:59 Paris time: max 3 pages #link("https://media.icml.cc/Conferences/ICML2026/Styles/icml2026.zip")[ICML 2026 style] (incl. a link to a git repo for the code)
   - Defense: 10 minutes presentation + 5 minutes question
 - Each student should attend the session her/his project is assigned (morning or afternoon)
+
+---
+
+== Data loading
+
+- You can use `tslearn` to load the LSST dataset as `numpy` arrays:
+
+#set text(size:24pt)
+
+```python
+from tslearn.datasets import UCR_UEA_datasets
+
+# Load the LSST dataset from UEA archive
+ds = UCR_UEA_datasets()
+X_train, y_train, X_test, y_test = ds.load_dataset("LSST")
+```
