@@ -37,10 +37,11 @@
 ---
 
 - Requirements
+  - A group = 3 or 4 students
   - A strong competitor + a decent baseline (without pre-training)
   - A report is due on March 16th, 23:59 Paris time: max 3 pages #link("https://media.icml.cc/Conferences/ICML2026/Styles/icml2026.zip")[ICML 2026 style] (incl. a link to a git repo for the code)
-  - Defense: 10 minutes presentation + 5 minutes question
-- Each student should attend the session her/his project is assigned (morning or afternoon)
+  - Defense: 10 minutes presentation + 5 minutes question, on the 23rd of March
+    - Each student should attend the session her/his project is assigned (morning or afternoon)
 
 ---
 
