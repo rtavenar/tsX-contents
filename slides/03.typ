@@ -5,7 +5,7 @@
 #show: university-theme.with(
   aspect-ratio: "4-3",
   align: horizon,
-  footer-b: [Deep Learning for Time Series - Basics],
+  footer-b: [Deep Learning for Time Series - Attention-based architectures],
   config-info(
     title: [Deep Learning for Time Series],
     subtitle: [Session 3: Attention-based architectures],

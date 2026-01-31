@@ -5,7 +5,7 @@
 #show: university-theme.with(
   aspect-ratio: "4-3",
   align: horizon,
-  footer-b: [Deep Learning for Time Series - Basics],
+  footer-b: [Deep Learning for Time Series - Time Series Classification],
   config-info(
     title: [Deep Learning for Time Series],
     subtitle: [Session 4: Time Series Classification],
@@ -112,7 +112,7 @@ $=>$ Risk of overfitting to benchmarks rather than solving real-world problems
 
 = Historical baselines
 
-== $k$-Nearest Neighbors
+== Distance-based baselines
 
 - Key similarity measures (task-specific):
   - Euclidean distance
@@ -121,6 +121,32 @@ $=>$ Risk of overfitting to benchmarks rather than solving real-world problems
   - _etc._
 
 // PLACEHOLDER HERE: a figure with Euclidean, DTW, and subsequence matching
+
+== Feature-based baselines
+
+- Extract numerous features and plug a simple classifier
+  - Often a strong baseline in benchmark evaluations!
+
+#grid(columns: 3,
+      gutter: 1em,
+  image-with-caption(
+    image("fig/hctsa.png", width: 100%),
+    []
+  ),
+  image-with-caption(
+    image("fig/catch22.png", width: 80%),
+    []
+  ),
+  image-with-caption(
+    image("fig/tsfresh.png", width: 100%),
+    []
+  )
+)
+
+- Example features:
+  - `sum_of_reoccurring_values` - sum of all values present in the time series more than once
+  - `longest_strike_above_mean` - length of the longest consecutive subsequence that is bigger than the mean
+  
 
 == Shapelets
 
