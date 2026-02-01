@@ -435,7 +435,7 @@ class TimesNetAmplitudeWeighted(nn.Module):
         out = (stacked * self.weights.view(1, -1, 1)).sum(dim=1)
         return self.classifier(out)
 
-# %%
+# %% + tags=["solution"]
 # Get amplitudes from reference (same as for periods)
 _ref_ts = torch.from_numpy(X_train.mean(axis=0)).float()
 periods_aw, amplitudes_aw = extract_periods_and_amplitudes(_ref_ts, top_k=3)
