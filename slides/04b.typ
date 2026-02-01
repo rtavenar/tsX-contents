@@ -144,6 +144,18 @@ General idea: make use of LLM backbone
 
 = Step 2: Adapting
 
+== MOIRAI
+
+Extract patches at different scales to catch multi-resolution information
+
+#align(center)[
+#image-with-caption(
+    image("fig/moirai.svg", width: 100%),
+    [Source: "Unified Training of Universal Time Series Forecasting Transformers", ICML'24]
+  )
+]
+
+
 == TabPFN-TS: In-Context learning
 
 - TabPFN is pre-trained on tabular data alone
