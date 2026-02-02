@@ -101,7 +101,7 @@ def extract_periods_and_amplitudes(ts, top_k=5):
     Extract top-k periods and their FFT amplitudes from a time series.
     
     Args:
-        ts: tensor of shape (T,) or (T, C) — 1D or multivariate (FFT computed per channel, then averaged)
+        ts: tensor of shape (T,), (T, C), or (B, T, C) — univariate, multivariate, or batched multivariate
         top_k: number of periods to return
     
     Returns:
@@ -112,10 +112,16 @@ def extract_periods_and_amplitudes(ts, top_k=5):
     if ts.dim() == 1:
         fft_vals = torch.fft.rfft(ts)
         power = torch.abs(fft_vals) ** 2
-    else:  # (T, C)
+    elif ts.dim() == 2:  # (T, C)
         fft_vals = torch.fft.rfft(ts, dim=0)  # (T//2+1, C)
         power = torch.abs(fft_vals) ** 2
         power = power.mean(dim=-1)  # average across channels
+    elif ts.dim() == 3:  # (B, T, C)
+        fft_vals = torch.fft.rfft(ts, dim=1)  # (B, T//2+1, C)
+        power = torch.abs(fft_vals) ** 2
+        power = power.mean(dim=(0, -1))  # average across batch and channels
+    else:
+        raise ValueError(f"Unsupported tensor shape: {ts.shape}")
     
     min_period, max_period = 2, len(ts) // 2
     freqs = torch.arange(len(power), dtype=torch.float32, device=ts.device)
@@ -253,7 +259,7 @@ class TimesNet(nn.Module):
 
 
 # Compute periods once from training data
-_ref_ts = torch.from_numpy(X_train.mean(axis=0)).float()  # (T, C)
+_ref_ts = torch.from_numpy(X_train).float()  # (B, T, C)
 periods, _ = extract_periods_and_amplitudes(_ref_ts, top_k=3)
 num_classes = len(numpy.unique(y_train))
 n_channels = X_train.shape[2]
@@ -440,7 +446,7 @@ class TimesNetAmplitudeWeighted(nn.Module):
 
 # %% + tags=["solution"]
 # Get amplitudes from reference (same as for periods)
-_ref_ts = torch.from_numpy(X_train.mean(axis=0)).float()
+_ref_ts = torch.from_numpy(X_train).float()
 periods_aw, amplitudes_aw = extract_periods_and_amplitudes(_ref_ts, top_k=3)
 
 model_aw = TimesNetAmplitudeWeighted(

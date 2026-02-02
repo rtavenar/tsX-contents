@@ -5,10 +5,12 @@
 # classification and forecasting. You will:
 # - Use **MANTIS** (a lightweight TSC foundation model) and **MultiROCKET** (a fast
 #   feature-based baseline) on a classification task
-# - Use **TiReX** for probabilistic forecasting on the ETTh dataset and visualize
-#   predictions with uncertainty intervals
+# - Use **TiReX** for probabilistic forecasting on the ETTh dataset and visualize predictions with uncertainty intervals
 #
-# Data loaders and setup steps are provided below.
+# Docs for those models are available at:
+# - [Mantis](https://github.com/vfeofanov/mantis)
+# - [MultiRocket](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.transformations.collection.convolution_based.MultiRocket.html)
+# - [TiReX](https://github.com/NX-AI/tirex)
 
 # %% [markdown]
 # ## Part 0: Setup
@@ -55,7 +57,7 @@ y_test = y_test.ravel()
 # then train a linear classifier (e.g. logistic regression) on the extracted features
 # and report test accuracy.
 
-# %%
+# %% + tags=["solution"]
 from mantis.architecture import Mantis8M
 from mantis.trainer import MantisTrainer
 
@@ -79,7 +81,7 @@ clf.score(Z_test_mantis, y_test)
 # linear classifier on these features, and report test accuracy. Compare this
 # accuracy with the one obtained with MANTIS in Question 2.
 
-# %%
+# %% + tags=["solution"]
 from aeon.transformations.collection.convolution_based import MultiRocket
 
 model_mr = MultiRocket(n_kernels=512)
@@ -94,7 +96,7 @@ clf.score(Z_test_mr, y_test)
 # combined features. Does combining both representations improve test accuracy
 # compared to using either one alone?
 
-# %%
+# %% + tags=["solution"]
 Z_train_concat = np.concatenate((Z_train_mantis, Z_train_mr), axis=1)
 Z_test_concat = np.concatenate((Z_test_mantis, Z_test_mr), axis=1)
 clf = LogisticRegression(random_state=0).fit(Z_train_concat, y_train)
@@ -114,7 +116,7 @@ clf.score(Z_test_concat, y_test)
 # quantiles) on a batch of windows. Plot the past observations, ground-truth
 # future, mean prediction, and uncertainty interval (e.g. 90%) for a few samples.
 
-# %%
+# %% + tags=["solution"]
 import torch
 class ForecastingDataset(torch.utils.data.Dataset):
     """Windowed univariate forecasting dataset."""
@@ -161,7 +163,7 @@ def build_dataloader(csv_path: str,
                                        drop_last=False)
 dataloader = build_dataloader("data/ETTh1.csv", window=96, horizon=96)
 
-# %%
+# %% + tags=["solution"]
 from tirex import load_model, ForecastModel
 import matplotlib.pyplot as plt
 
