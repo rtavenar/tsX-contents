@@ -68,7 +68,7 @@
 
 #align(center)[
 #image-with-caption(
-    image("fig/tsfm_overview.svg", width: 100%),
+    image("fig/tsfm_overview.png", width: 100%),
     []
   )
 ]
@@ -107,7 +107,7 @@
 == TS2Vec
 
 - Self-supervised contrastive learning for time series
-  - Contrast positives: same series, different segments/scales
+  - Contrast positives: same series, different segments
   - Contrast negatives: different time series
 - Learns multi-scale (hierarchical) representations
 - Temporal encoder (CNN-based), no decoder
@@ -181,6 +181,18 @@ Encoder-only model: can be used for any downstream task (classification, forecas
   )
 ]
 
+== TiRex
+
+- Masking-based pre-training
+- Simple xLSTM architecture (only sLSTM blocks)
+
+#align(center)[
+#image-with-caption(
+    image("fig/tirex.svg", width: 90%),
+    [Source: "TiRex: Zero-Shot Forecasting Across Long and Short Horizons with Enhanced In-Context Learning", NeurIPS'25]
+  )
+]
+
 == MANTIS: a FM for TSC
 
 - Contrastive pre-training
@@ -207,18 +219,6 @@ Encoder-only model: can be used for any downstream task (classification, forecas
 // by Mixing via Scalar Memories", NeurIPS'25]
 //   )
 // ]
-
-== TiRex
-
-- Masking-based pre-training
-- Simple xLSTM architecture (only sLSTM blocks)
-
-#align(center)[
-#image-with-caption(
-    image("fig/tirex.svg", width: 90%),
-    [Source: "TiRex: Zero-Shot Forecasting Across Long and Short Horizons with Enhanced In-Context Learning", NeurIPS'25]
-  )
-]
 
 = Step 3: Evaluating
 
