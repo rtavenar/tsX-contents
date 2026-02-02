@@ -62,7 +62,6 @@ X_train, y_train, X_test, y_test = ds.load_dataset("LSST")
 == Declaring groups
 
   - Upload a CSV (*one per group*, no double posting please) on the course page with columns 
-    - STUDENT_ID
     - STUDENT_NAME
     - STUDENT_FIRSTNAME
     - AVAILABLE_2303_MORNING
