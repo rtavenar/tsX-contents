@@ -553,11 +553,8 @@ class PatchTST_ChannelIndependent(nn.Module):
         patch_emb = patch_emb + self.pos_encoding
 
         encoded = self.transformer(patch_emb)
-        aggregated = encoded.mean(dim=1)
-
-        pred = self.head(aggregated)  # (B*C, pred_len)
-        pred = pred.view(B, C, self.pred_len).permute(0, 2, 1)
-        pred = pred[:, :, -1:]  # target feature is -1
+        encoded = encoded.reshape((B, C, -1, self.d_model)) # (B, C, P, model_dim)
+        pred = self.head(encoded.mean(dim=(1, 2)))[:, :, None] # (B, H, 1)
 
         if self.revin:
             pred = self.revin_layer(pred, mode="denorm")
