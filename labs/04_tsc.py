@@ -101,18 +101,21 @@ def extract_periods_and_amplitudes(ts, top_k=5):
     Extract top-k periods and their FFT amplitudes from a time series.
     
     Args:
-        ts: tensor of shape (T,) or (T, C) — 1D or multivariate (channels averaged for FFT)
+        ts: tensor of shape (T,) or (T, C) — 1D or multivariate (FFT computed per channel, then averaged)
         top_k: number of periods to return
     
     Returns:
         periods: list of int, period lengths
         amplitudes: list of float, FFT power at each period
     """
-    if ts.dim() > 1:
-        ts = ts.mean(dim=-1)  # (T,)
     ts = ts.float()
-    fft_vals = torch.fft.rfft(ts)
-    power = torch.abs(fft_vals) ** 2
+    if ts.dim() == 1:
+        fft_vals = torch.fft.rfft(ts)
+        power = torch.abs(fft_vals) ** 2
+    else:  # (T, C)
+        fft_vals = torch.fft.rfft(ts, dim=0)  # (T//2+1, C)
+        power = torch.abs(fft_vals) ** 2
+        power = power.mean(dim=-1)  # average across channels
     
     min_period, max_period = 2, len(ts) // 2
     freqs = torch.arange(len(power), dtype=torch.float32, device=ts.device)
