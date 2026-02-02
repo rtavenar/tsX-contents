@@ -51,15 +51,11 @@ print(f"Train labels: {numpy.unique(y_train)}, Classes: {len(numpy.unique(y_trai
 class TSCDataset(torch.utils.data.Dataset):
     """Time Series Classification Dataset. Expects X of shape (n_samples, T, C)."""
     
-    def __init__(self, X, y, normalize=True, scaler=None):
+    def __init__(self, X, y, normalize=True):
         super().__init__()
         self.X = X.astype(numpy.float32)
         self.y = y.astype(numpy.int64)
         self.normalize = normalize
-        if normalize:
-            self.scaler = scaler or StandardScaler()
-            if scaler is None:
-                self.scaler.fit(self.X.reshape(-1, 1))
     
     def __len__(self):
         return len(self.X)
@@ -67,12 +63,15 @@ class TSCDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         ts = self.X[idx]  # (T, C)
         if self.normalize:
-            ts = self.scaler.transform(ts.reshape(-1, 1)).reshape(ts.shape)
+            # Per-series standardization: center and reduce
+            mean = ts.mean(axis=0, keepdims=True)
+            std = ts.std(axis=0, keepdims=True) + 1e-8  # avoid division by zero
+            ts = (ts - mean) / std
         return torch.from_numpy(ts), torch.tensor(self.y[idx], dtype=torch.long)
 
-# Create datasets and data loaders (fit scaler on train only)
+# Create datasets and data loaders (per-series normalization)
 train_dataset = TSCDataset(X_train, y_train, normalize=True)
-test_dataset = TSCDataset(X_test, y_test, normalize=True, scaler=train_dataset.scaler)
+test_dataset = TSCDataset(X_test, y_test, normalize=True)
 
 train_loader = torch.utils.data.DataLoader(
     train_dataset, batch_size=32, shuffle=True
