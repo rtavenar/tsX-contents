@@ -30,7 +30,7 @@ from sklearn.preprocessing import StandardScaler
 
 # %%
 !wget -O data/UCIHAR.npz https://github.com/rtavenar/ml-datasets/releases/download/UCIHAR/UCIHAR.npz
-# %% + tags=["solution"]
+# %%
 dataset = numpy.load("data/UCIHAR.npz")
 X_train, y_train = dataset["X_train"], dataset["y_train"].ravel()
 X_test, y_test = dataset["X_test"], dataset["y_test"].ravel()
