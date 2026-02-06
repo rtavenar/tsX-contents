@@ -210,6 +210,7 @@ A common choice for $f_theta$ is an MLP.
     Phi(x) = sin(W dot x + b)
   $
 - Acts as a learnable Fourier basis decomposition
+- Has non-zero second-order derivatives \ (contrary to ReLU-activated nets)
 
 #image-with-caption(
   align(center)[
@@ -268,6 +269,7 @@ A common choice for $f_theta$ is an MLP.
 *HyperTime*
 - Generates an encoding $z$ per timestamp
 - Requires global pooling along the time axis (or fixed number of observations per series)
+- Uses an additional frequency-based loss
 
 #image-with-caption(
   align(center)[
@@ -277,14 +279,18 @@ A common choice for $f_theta$ is an MLP.
 )
 
 ---
-
-*TimeFlow*
-- Code $z$ is optimized through few-step gradient descent \ (not output by an encoder) \
-  $->$ no constraint on the input time grid, no need for pooling
-
-#image-with-caption(
-  align(center)[
-    #image("fig/timeflow.svg", width: 100%)
+#grid(columns: (40%, 1fr),
+      gutter: 1em,
+  [
+    *TimeFlow*
+    - Activation modulations (_à la_ FiLM)
+    - Code $z$ is optimized through few-step gradient descent \ (not output by an encoder) \
+      $->$ no constraint on the input time grid, no need for pooling
   ],
-  [Source: "Time Series Continuous Modeling for Imputation and Forecasting with Implicit Neural Representations", TMLR'24]
+  image-with-caption(
+    align(center)[
+      #image("fig/timeflow_modulation.svg", width: 100%)
+    ],
+    [Source: "Time Series Continuous Modeling for Imputation and Forecasting with Implicit Neural Representations", TMLR'24]
+  )
 )
