@@ -107,7 +107,7 @@ $
 == Neural ODEs
 
 - ODEs for forecasting
-  - Need to find the right $f$ for our data
+  - What is the right $f$ for our data?
   - Let $f$ be a neural network $f_theta$ and train it on our forecasting task
     - Need to compute gradients through the solver
     #align(center)[
@@ -192,25 +192,24 @@ $
 
 A common choice for $f_theta$ is an MLP.
 
---- 
+== Time Embedding layer
 
 - Representing time as a 1D feature is a weak representation
-- In practice, an INR's first layer is often a positional encoding
-  - Fourier features (random or learnt):
+- In practice, an INR's first layer is often a positional encoding, eg. Fourier features (random or learnt):
   $ h_1(t) =
   [ sin(omega_1 t), cos(omega_1 t), dots,
     sin(omega_K t), cos(omega_K t) ] $
-  - Sine activated layer ($W$ is a learnable vector):
-  $ h_1(t) = sin(omega_0 W t) $
+  // - Sine activated layer ($W$ is a learnable vector):
+  // $ h_1(t) = sin(omega_0 W t) $
 
-== SIREN
+== SInusoidal REpresentation Networks (SIRENs)
 
 - Use sine activation functions:
   $
     Phi(x) = sin(W dot x + b)
   $
-- Acts as a learnable Fourier basis decomposition
-- Has non-zero second-order derivatives \ (contrary to ReLU-activated nets)
+- Act as a learnable Fourier basis decomposition
+- Have non-zero second-order derivatives //\ (contrary to ReLU-activated nets)
 
 #image-with-caption(
   align(center)[
