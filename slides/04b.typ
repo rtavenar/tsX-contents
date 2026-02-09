@@ -107,7 +107,7 @@
 == TS2Vec
 
 - Self-supervised contrastive learning for time series
-  - Contrast positives: same series, different segments
+  - Contrast positives: same series, overlapping segments
   - Contrast negatives: different time series
 - Learns multi-scale (hierarchical) representations
 - Temporal encoder (CNN-based), no decoder
