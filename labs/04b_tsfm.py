@@ -114,7 +114,7 @@ clf.score(Z_test_concat, y_test)
 # (e.g. context length 96, horizon 96). Load the pre-trained TiReX model from
 # the `tirex-ts` module and produce probabilistic forecasts (e.g. mean and
 # quantiles) on a batch of windows. Plot the past observations, ground-truth
-# future, mean prediction, and uncertainty interval (e.g. 90%) for a few samples.
+# future, mean prediction, and 80%-level uncertainty interval for a few samples.
 
 # %%
 import torch
