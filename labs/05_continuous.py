@@ -166,9 +166,10 @@ class ModulatedINR(nn.Module):
         B, T = z.shape[0], t.shape[0]
         params = self.modulation(z)
         g1, b1, g2, b2 = torch.split(params, 64, dim=-1)
+        t = t.unsqueeze(0).expand(B, T, 1)
 
         # TODO: implement forward using modulation parameters
-        raise NotImplementedError()
+
 
 # %% + tags=["solution"]
 class ModulatedINR(nn.Module):
