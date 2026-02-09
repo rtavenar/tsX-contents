@@ -1,13 +1,10 @@
 # %% [markdown]
-# # Continuous-Time Models Lab: Neural ODEs vs. Implicit Neural Representations
+# # Continuous-Time Models
 #
 # In this lab, you will explore continuous-time neural models for trajectory prediction:
-# - **Neural ODEs**: Use learned vector fields to model system dynamics, with automatic differentiation-based solving
-# - **INRs (Implicit Neural Representations)**: Directly learn the trajectory mapping from time to position
-# - **Test-time adaptation**: Optimize latent vectors to fit specific trajectories
-#
-# Through this lab, you will understand the trade-offs between learning dynamics vs. learning mappings,
-# and how these models generalize to unseen initial conditions and longer time windows.
+# - Neural ODEs: Use learned vector fields to model system dynamics, with automatic differentiation-based solving
+# - INRs (Implicit Neural Representations): Directly learn the trajectory mapping from time to position
+# - Latent representation adaptation: Optimize latent vectors to fit specific trajectories
 #
 # In this lab, you will need the `torchdiffeq` package that offers ODE solvers in torch. 
 # Install it using the command below and check the docs for its `odeint` function 
@@ -146,7 +143,8 @@ for epoch in range(101):
 # %% [markdown]
 # ## Part 2: Implicit Neural Representations (INRs)
 #
-# **Question 2.** Implement a conditioned INR that takes an initial position embedding
+# **Question 2.** Implement a conditioned INR that takes an initial position as "latent"
+# representation `z`
 # and uses modulation to generate trajectory predictions. This model directly learns
 # the mapping from time to position, conditioned on the initial state.
 # Train it on the trajectory dataset and compare its loss curve with the Neural ODE.
