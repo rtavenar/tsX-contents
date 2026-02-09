@@ -110,13 +110,13 @@ clf.score(Z_test_concat, y_test)
 # forecasting on the univariate ETTh1 series and visualize probabilistic
 # predictions.
 #
-# **Question 5.** Build a windowed forecasting dataset and DataLoader for ETTh1
+# **Question 5.** Use the DataLoader below for ETTh1
 # (e.g. context length 96, horizon 96). Load the pre-trained TiReX model from
 # the `tirex-ts` module and produce probabilistic forecasts (e.g. mean and
 # quantiles) on a batch of windows. Plot the past observations, ground-truth
 # future, mean prediction, and uncertainty interval (e.g. 90%) for a few samples.
 
-# %% + tags=["solution"]
+# %%
 import torch
 class ForecastingDataset(torch.utils.data.Dataset):
     """Windowed univariate forecasting dataset."""
@@ -161,21 +161,15 @@ def build_dataloader(csv_path: str,
                                        batch_size=batch_size, 
                                        shuffle=shuffle, 
                                        drop_last=False)
-dataloader = build_dataloader("data/ETTh1.csv", window=96, horizon=96)
 
-# %% + tags=["solution"]
-from tirex import load_model, ForecastModel
-import matplotlib.pyplot as plt
-
-model: ForecastModel = load_model("NX-AI/TiRex")
-
+# %%
 def visualize_probabilistic_forecast(model, dataloader, n_samples=3):
     """Visualize probabilistic forecasts with uncertainty intervals."""
     model.eval()
     past, future = next(iter(dataloader))
     with torch.no_grad():
-        quantiles, mean = model.forecast(past, prediction_length=future.shape[1])
-        print(quantiles.shape, mean.shape)
+        # TODO here: generate a forecast from the model
+        pass
     
     for i in range(min(n_samples, past.shape[0])):
         # Plot past
@@ -199,4 +193,40 @@ def visualize_probabilistic_forecast(model, dataloader, n_samples=3):
         plt.title(f'Probabilistic Forecast (Sample {i+1})')
         plt.show()
 
+# %% + tags=["solution"]
+def visualize_probabilistic_forecast(model, dataloader, n_samples=3):
+    """Visualize probabilistic forecasts with uncertainty intervals."""
+    model.eval()
+    past, future = next(iter(dataloader))
+    with torch.no_grad():
+        quantiles, mean = model.forecast(past, prediction_length=future.shape[1])
+    
+    for i in range(min(n_samples, past.shape[0])):
+        # Plot past
+        t_past = np.arange(past.shape[1])
+        plt.plot(t_past, past[i].numpy(), 'b-', linewidth=2, label='Past observations')
+        
+        # Plot future
+        t_future = np.arange(past.shape[1], past.shape[1] + future.shape[1])
+        plt.plot(t_future, future[i].numpy(), 'g-', linewidth=2, label='Ground truth')
+        
+        # Plot mean prediction
+        plt.plot(t_future, mean[i].numpy(), 'r--', linewidth=2, label='Mean prediction')
+        
+        # Plot uncertainty bands
+        plt.fill_between(t_future, quantiles[i, :, 0].numpy(), quantiles[i, :, -1].numpy(), alpha=0.2, color='red', label='80% interval')
+        
+        plt.axvline(x=past.shape[1]-0.5, color='gray', linestyle=':', alpha=0.5)
+        plt.legend()
+        plt.xlabel('Time')
+        plt.ylabel('Value')
+        plt.title(f'Probabilistic Forecast (Sample {i+1})')
+        plt.show()
+
+# %% + tags=["solution"]
+from tirex import load_model, ForecastModel
+import matplotlib.pyplot as plt
+
+dataloader = build_dataloader("data/ETTh1.csv", window=96, horizon=96)
+model: ForecastModel = load_model("NX-AI/TiRex")
 visualize_probabilistic_forecast(model, dataloader, n_samples=3)
