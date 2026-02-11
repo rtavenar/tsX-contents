@@ -29,189 +29,199 @@
 
 == Caveats of previously introduced models
 
-- RNNs: sequential, hard to scale
+#align(center)[
+  #include "cetz/inductive_biases_nocausal.typ"
+]
+
+- RNNs: sequential, limits parallelism
 - CNNs: local receptive field
-- Transformers:
-  - expressive
-  - but $O(L^2)$ in sequence length
+- Attention-based models: $O(T^2)$ complexity
 
-#figure-placeholder(100%, 5em)
+== What State Space Models (SSMs) can offer
 
----
+- Continuous-time dynamics
+- Long-range dependencies
+- Linear (or near-linear) complexity
 
-== A question
-
-Can we get:
-- long-range dependencies
-- linear (or near-linear) complexity
-- strong inductive bias for sequences?
-
-→ *State Space Models*
-
----
+#align(center)[
+  #image-with-caption(
+    image("fig/ssm_3views.png", width: 100%),
+    [Source: "Structured State Spaces: Combining Continuous-Time, Recurrent, and Convolutional Models", a blogpost by by Albert Gu et al. (2022)]
+  )
+]
 
 = State Space Models
 
 == Classical SSM formulation
 
-Latent state $x_t in RR^N$ evolves over time:
+Latent state $h_t in RR^d$ evolves over time following:
 
 $
-  dot(h) (t) &= A h (t) + B x (t) \
-  o (t) &= C h (t) + D x(t)
+  cases(
+    dot(h) (t) &= A h (t) + B x (t),
+    o (t) &= C h (t) + cancel(D x(t))
+  )
 $
 
 - $x (t)$: input
 - $o (t)$: output
 - $h (t)$: latent state
 
-#figure-placeholder(100%, 5em)
+In practice, we often set $D=0$ for simplicity (can be later recovered through residual connection in Deep SSM anyway).
+
+== Step 1: Time discretization (S4)
+
+#align(center)[
+  #image-with-caption(
+    image("fig/ssm_discretization.png", width: 70%),
+    [Source: "Structured State Spaces: Combining Continuous-Time, Recurrent, and Convolutional Models", a blogpost by by Albert Gu et al. (2022)]
+  )
+]
 
 ---
-
-== Intuition
-
-- $h (t)$: compressed memory of the past
-- Linear dynamics over time
-- Used for decades in control & signal processing
-
-#figure-placeholder(100%, 5em)
-
----
-
-== From control to deep learning
-
-Key idea:
-- Learn $(A, B, C)$
-- Make SSMs differentiable
-- Scale them to large datasets
-
-SSMs become *sequence layers*
-
----
-
-= SSMs as sequence layers
-
-== Convolutional view
-
-A linear SSM defines a *convolution*:
 
 $
-  o = K * x
+  dot(h) (t) &= A h (t) + B x (t)
 $
 
-where:
-- $K$ is implicitly defined by $(A, B, C)$
-- Can be computed efficiently
+Let us discretize time with step $Delta$ between $t$ and $t+1$.
+1. Textbook ODE solving gives the following form for $h(t)$:
 
-#figure-placeholder(100%, 5em)
+$
+  h (t) &= e^(A Delta) h (t-Delta) + integral_0^Delta e^(A s) B x (t - s) dif s
+$
 
----
+#pause
 
-== Why this matters
+2. Assume $x(t)$ is constant between $t - Delta$ and $t$: // (i.e., zero-order hold):
 
-- Parallel over time (like Transformers)
-- Linear complexity in sequence length
-- Strong inductive bias for long memory
+$
+  h (t) &= e^(A Delta) h (t-Delta) + (integral_0^Delta e^(A s) dif s) B x (t)
+$
 
----
+#pause
 
-= Modern SSMs
+3. Get the discrete update rule:
 
-== The SSM renaissance
-
-Recent models:
-- S4
-- DSS
-- Mamba
-- Hyena (related ideas)
-
-All build on the same core principle.
-
-#figure-placeholder(100%, 5em)
+$
+  h_(t) &= overline(A) h_(t-1) + overline(B) x_(t)
+$
 
 ---
 
-== Key design choices
+Now we have the discrete system:
 
-- Structure of matrix $A$
-- Parameterization for stability
-- Efficient kernel computation
-- Gating & nonlinearities
+$
+  cases(
+    h_(t) &= overline(A) h_(t-1) + overline(B) x_(t),
+    o_(t) &= overline(C) h_(t)
+  )
+$
 
-(Details at the board.)
+with:
+- $overline(A) = e^(A Delta)$
+- $overline(B) = (integral_0^Delta e^(A s) dif s) B$
+- $overline(C) = C$
 
----
+*Main idea behind S4*: Parametrize $A$, $B$, $C$ such that the resulting discrete system has good properties (efficient computation, stable training, long memory).
 
-== Example: diagonal SSMs
-
-Assume $A$ is diagonal (or diagonalizable):
-
-- Dynamics decouple across dimensions
-- Fast computation
-- Stable training
-
-This is the core idea behind *S4*
+// TODO here: on the right of the figure, add an illustration of the discrete system (boxes for $h_t$, arrows for the updates, etc.) to make it more concrete.
 
 ---
 
-= Mamba & selective SSMs
+*Efficient computation: The convolutional trick*
 
-== Limit of pure linearity
+Let us assume $h_0 = 0$, then we get:
 
-Linear SSMs:
-- great memory
-- limited expressivity
+$
+  h_t &= sum_(k=1)^(t) overline(A)^(t-k) overline(B) x_k
+$
 
-Solution:
-→ *input-dependent dynamics*
+#v(1em)
 
----
+#align(center)[
+  #scale(x: 160%, y: 160%,
+    include "cetz/conv1d_ssm.typ",
+  )
+]
 
-== Selective State Space Models
+#v(3em)
 
-Mamba introduces:
-- input-dependent $B_t$, $C_t$
-- gating mechanisms
-- still linear-time
+Efficient implementation: compute the convolution using FFT
 
-#figure-placeholder(100%, 5em)
+--- 
 
----
+*Long-term memory: The parametrization trick*
 
-== Why Mamba works so well
-
-- Acts like a content-aware filter
-- Keeps SSM efficiency
-- Competitive with Transformers on long sequences
-
----
-
-= Takeaways
-
-== When should you use SSMs?
-
-- Very long sequences
-- Memory matters more than attention
-- Efficiency is critical
+- Risk of vanishing for long-range terms (i.e., $overline(A)^k overline(B)$ could vanish for large $k$)
+- S4's solution: smart parametrization of $A$
+  - Typical choice: $A = V Lambda V^(-1)$ with eigenvalues of the form 
+    $
+      lambda_k (A) = -alpha_k + i omega_k
+    $
+  - $overline(A) = e^(A Delta) = V e^(Lambda Delta) V^(-1)$ with $lambda_k (overline(A)) = e^(-alpha_k Delta) e^(i omega_k Delta)$
+  - $overline(A)^k = V (e^(Lambda Delta))^k V^(-1)$ 
+  - If $alpha_k$ is small, we get long-range dependencies without vanishing (since $e^(-alpha_k Delta)$ is close to 1)
 
 ---
 
-== Mental model
+*Recovering continuous-time dynamics*
 
-- Transformers: dynamic attention over tokens
-- SSMs: learned dynamical systems over time
+- Easy since S4 parametrizes $A$ directly 
+- Just need to compute
+  $
+    h (t) &= e^(A Delta) h (t-Delta) + (integral_0^Delta e^(A s) dif s) B x (t)
+  $
+  on a sufficiently fine-grained grid (remember the constant $x(t)$ hypothesis)
+- We have:
+  $
+    integral_0^Delta e^(A s) dif s = A^(-1) (e^(A Delta) - I)
+  $
+  since $A$ is invertible, we're good to go!
 
-Both are sequence models — different biases.
+== Step 2: Input-dependent dynamics (Mamba)
 
-#figure-placeholder(100%, 5em)
+Pure linearity in SSMs:
+- ✓ Great long-range memory
+- ✗ Limited expressivity
+
+*Solution: Make dynamics input-dependent*
+
+$
+  cases(
+    h_(t) &= e^(-Delta_t A) h_(t-1) + B_t x^prime_(t),
+    o_(t) &= C_t h_(t)
+  )
+$
+with $Delta_t$, $B_t$, $C_t$, $x_t^prime$ linear in the input $x_t$
+
+Now the state transition adapts to the input as in attention-based models
 
 ---
 
-== Final message
+== Mamba: Efficiency without convs
 
-SSMs are not new.  
-But *now* we know how to scale them.
+The challenge: input-dependent parameters break the convolutional structure.
 
-🚆 Get on the SSM train.
+Mamba's design choices:
 
+1. Scan-based computation
+  - Process sequentially (like RNN)
+  - Still efficient thanks to low-level optimizations (e.g., GPU kernels) using the linearity of the state update
+2. Gating mechanisms
+  - Controls what information is retained in the state
+  - Similar to LSTM/GRU gates
+
+$=>$ $O(T)$ complexity
+
+= Typical SSM architectures for TS forecasting
+
+== Mamba4Cast: a foundation model for TS forecasting
+
+#image-with-caption(
+  image("fig/mamba4cast.svg", width: 100%),
+  [
+    Source: "Mamba4Cast: Efficient Zero-Shot Time Series
+Forecasting with State Space Models", NeurIPS'24 Workshop
+  ]
+)

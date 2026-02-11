@@ -12,11 +12,12 @@
 }
 
 
-#set page(
-  width: 630pt,
-  height: 130pt,
-  margin: 10pt,
-)
+// Uncomment to generate the output PDF
+// #set page(
+//   width: 630pt,
+//   height: 130pt,
+//   margin: 10pt,
+// )
 
 #cetz.canvas(
   {
