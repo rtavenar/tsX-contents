@@ -157,7 +157,7 @@ Efficient implementation: compute the convolution using FFT
 - S4's solution: smart parametrization of $A$
   - Typical choice: $A = V Lambda V^(-1)$ with eigenvalues of the form 
     $
-      lambda_k (A) = -alpha_k + i omega_k
+      lambda_k (A) = -underbrace(alpha_k, > 0) + i omega_k
     $
   - $overline(A) = e^(A Delta) = V e^(Lambda Delta) V^(-1)$ with $lambda_k (overline(A)) = e^(-alpha_k Delta) e^(i omega_k Delta)$
   - $overline(A)^k = V (e^(Lambda Delta))^k V^(-1)$ 
@@ -214,9 +214,8 @@ Mamba's design choices:
 
 $=>$ $O(T)$ complexity
 
-= Typical SSM architectures for TS forecasting
 
-== Mamba4Cast: a foundation model for TS forecasting
+== Mamba4Cast: a foundation model for (univariate) TS forecasting
 
 #image-with-caption(
   image("fig/mamba4cast.svg", width: 100%),
