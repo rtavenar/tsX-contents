@@ -8,8 +8,6 @@
 # - Accelerate the convolution using FFT
 # - Compare runtime performance between approaches
 
-# TODO-Romain: the current content is sufficient, now the goal is to make the lab as accessible as possible to the students and copy-paste some content from one place to the other
-
 # %%
 import time
 import numpy as np
@@ -39,6 +37,7 @@ class ToyForecastDataset(Dataset):
     def __init__(self, n_samples=1000, seq_len=128):
         self.seq_len = seq_len
         self.data = []
+        self.dt = 10. / seq_len
 
         for _ in range(n_samples):
             t = np.linspace(0, 10, seq_len + 1)
@@ -57,7 +56,13 @@ class ToyForecastDataset(Dataset):
         return (
             torch.tensor(data[:-1]).unsqueeze(-1),
             torch.tensor(data[1:]).unsqueeze(-1),
+            self.dt
         )
+
+# Create a dataset and dataloader
+dataset = ToyForecastDataset(n_samples=100, seq_len=1024)
+loader = DataLoader(dataset, batch_size=32, shuffle=True)
+
 
 # %% [markdown]
 # ## Part 2: Continuous-time SSM (Diagonal A)
@@ -82,7 +87,7 @@ class ToyForecastDataset(Dataset):
 # ```
 
 # %%
-class DiagonalSSM_RNN(nn.Module):
+class DiagonalSSM(nn.Module):
     def __init__(self, d_model=1, d_state=32):
         super().__init__()
         self.d_state = d_state
@@ -100,15 +105,98 @@ class DiagonalSSM_RNN(nn.Module):
         raise NotImplementedError()
 
     def forward(self, x, dt=0.1):
-        # TODO: RNN-style forward
-        raise NotImplementedError()
+        """
+        x: (B, L, d_model)
+        dt: integration step size
+        return: (B, L, d_model)
+        """
+        return self._forward_rnn(x, dt)
+
+    def _forward_rnn(self, x, dt):
+        """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
+        B, L, _ = x.shape
+        A_d, B_d = self.A_d(dt), self.B_d(dt)
+        h = torch.zeros(B, self.d_state, device=x.device)
+        os = []
+        for t in range(L):
+            x_t = x[:, t]
+            h = A_d * h + torch.matmul(x_t, B_d.transpose(0, 1))
+            o = torch.matmul(h, self.C.t())
+            os.append(o)
+        return torch.stack(os, dim=1)
+
+# %% + tags=["solution"]
+class DiagonalSSM(nn.Module):
+    def __init__(self, d_model=1, d_state=32):
+        super().__init__()
+        self.d_state = d_state
+        # Init. A, B, and C
+        self.A = nn.Parameter(torch.randn(d_state))
+        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
+
+    def A_d(self, dt):
+        return torch.exp(dt * self.A)
+
+    def B_d(self, dt):
+        A_d_val = self.A_d(dt)
+        B_factor = (A_d_val - 1.0) / (self.A + 1e-5)
+        return B_factor.unsqueeze(-1) * self.B
+
+    def forward(self, x, dt=0.1):
+        """
+        x: (B, L, d_model)
+        dt: integration step size
+        return: (B, L, d_model)
+        """
+        return self._forward_rnn(x, dt)
+
+    def _forward_rnn(self, x, dt):
+        """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
+        B, L, _ = x.shape
+        A_d, B_d = self.A_d(dt), self.B_d(dt)
+        h = torch.zeros(B, self.d_state, device=x.device)
+        os = []
+        for t in range(L):
+            x_t = x[:, t]
+            h = A_d * h + torch.matmul(x_t, B_d.transpose(0, 1))
+            o = torch.matmul(h, self.C.t())
+            os.append(o)
+        return torch.stack(os, dim=1)
     
 # %% [markdown]
 # **Question 3.** Now train your model on the following dataset.
 # What do you observe?
 
 # %%
-# TODO here: code for training a model on the dataset
+def train(model, loader, epochs=10, lr=1e-3, forward_options=None):
+    model.to(device)
+    opt = optim.Adam(model.parameters(), lr=lr)
+
+    for epoch in range(epochs):
+        total_loss = 0
+
+        for x, o, dt in loader:
+            x, o, dt = x.to(device), o.to(device), dt.to(device)
+            dt = dt[0].to(x.dtype)
+
+            if forward_options is None:
+                pred = model(x, dt)
+            else:
+                pred = model(x, dt, **forward_options)
+            loss = ((pred - o) ** 2).mean()
+
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+
+            total_loss += loss.item()
+
+        print(f"Epoch {epoch:02d} | Loss: {total_loss/len(loader):.4f}")
+
+# Initialize and train the RNN model
+model = DiagonalSSM(d_model=1, d_state=32)
+train(model, loader)
 
 # %% [markdown]
 # **Question 4.** What do you think is wrong with the current
@@ -116,7 +204,7 @@ class DiagonalSSM_RNN(nn.Module):
 # solves the explosion of h[t] along time.
 
 # %%
-class DiagonalSSM_RNN(nn.Module):
+class DiagonalSSM(nn.Module):
     """
     Continuous-time SSM:
         h'(t) = A h(t) + B x(t)
@@ -166,17 +254,34 @@ class DiagonalSSM_RNN(nn.Module):
         x: (B, L, d_model)
         dt: integration step size
         return: (B, L, d_model)
-        
-        TODO: Implement RNN-style forward pass using self.A_d(dt) and self.B_d(dt).
         """
-        raise NotImplementedError("Implement RNN forward pass.")
+        return self._forward_rnn(x, dt)
+
+    def _forward_rnn(self, x, dt):
+        """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
+        B, L, _ = x.shape
+        A_d, B_d = self.A_d(dt), self.B_d(dt)
+        h = torch.zeros(B, self.d_state, device=x.device)
+        os = []
+        for t in range(L):
+            x_t = x[:, t]
+            h = A_d * h + torch.matmul(x_t, B_d.transpose(0, 1))
+            o = torch.matmul(h, self.C.t())
+            os.append(o)
+        return torch.stack(os, dim=1)
 
 # %% + tags=["solution"]
-class DiagonalSSM_RNN(nn.Module):
+class DiagonalSSM(nn.Module):
+    """
+    Diagonal SSM with stable A initialization.
+    
+    The model stores stable parameters alpha, B, and C.
+    Implements RNN-style forward pass (unrolled discretized ODE).
+    """
     def __init__(self, d_model=1, d_state=32):
         super().__init__()
         self.d_state = d_state
-        # Stable init
+        # Stable init: A = -exp(alpha), where alpha is learnable
         self.alpha = nn.Parameter(torch.randn(d_state))
         self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
         self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
@@ -194,6 +299,15 @@ class DiagonalSSM_RNN(nn.Module):
         return B_factor.unsqueeze(-1) * self.B
 
     def forward(self, x, dt=0.1):
+        """
+        x: (B, L, d_model)
+        dt: integration step size
+        return: (B, L, d_model)
+        """
+        return self._forward_rnn(x, dt)
+
+    def _forward_rnn(self, x, dt):
+        """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
         B, L, _ = x.shape
         A_d, B_d = self.A_d(dt), self.B_d(dt)
         h = torch.zeros(B, self.d_state, device=x.device)
@@ -205,6 +319,10 @@ class DiagonalSSM_RNN(nn.Module):
             os.append(o)
         return torch.stack(os, dim=1)
 
+# Initialize and train the RNN model
+model = DiagonalSSM(d_model=1, d_state=32)
+train(model, loader)
+
 # %% [markdown]
 # ## Part 3: Convolution View
 #
@@ -213,133 +331,108 @@ class DiagonalSSM_RNN(nn.Module):
 #     K_k = C A_d^k B_d
 # ```
 #
-# Implement the `compute_kernel` method to produce the convolution kernel,
-# then use it in the `forward` method via `nn.functional.conv1d`.
-
-# %%
-class DiagonalSSM_Conv(nn.Module):
-    """
-    Uses convolution kernel:
-
-        K_k = C A_d^k B_d
-    """
-
-    def __init__(self, d_model=1, d_state=32):
-        super().__init__()
-        self.ssm = DiagonalSSM_RNN(d_model, d_state)
-
-    def compute_kernel(self, L, dt=0.1):
-        """
-        Return kernel of shape (L, d_model, d_model)
-        
-        TODO: Implement kernel computation using self.ssm.A_d(dt) and self.ssm.B_d(dt).
-        """
-        A_d = self.ssm.A_d(dt)
-        B_d = self.ssm.B_d(dt)
-        C = self.ssm.C
-
-        Ks = []
-        A_power = torch.ones_like(A_d)
-
-        for _ in range(L):
-            term = C @ (A_power.unsqueeze(-1) * B_d)
-            Ks.append(term)
-            A_power = A_power * A_d
-
-        return torch.stack(Ks, dim=0)
-
-    def forward(self, x, dt=0.1):
-        B, L, d = x.shape
-        K = self.compute_kernel(L, dt)  # (L, d_model, d_model)
-
-        # Causal convolution: o[t] = sum_{k=0}^{t} K[k] @ x[t-k]
-        # Vectorized using torch operations
-        
-        # Pad x on the left to create a window view
-        x_pad = nn.functional.pad(x, (0, 0, L - 1, 0))  # (B, 2L-1, d)
-        
-        # Create causal window indices: for each t, get x[t:t+L] reversed
-        # indices[t, k] should point to x_pad[t + (L-1) - k]
-        t_idx = torch.arange(L, device=x.device).unsqueeze(1)  # (L, 1)
-        k_idx = torch.arange(L, device=x.device).unsqueeze(0)  # (1, L)
-        indices = (L - 1) + t_idx - k_idx  # (L, L)
-        indices = indices.clamp(0, 2 * L - 2)
-        
-        # Gather windows: (B, 2L-1, d) -> (B, L, L, d)
-        x_windows = x_pad[:, indices, :]  # (B, L, L, d)
-        
-        # Apply kernel via einsum
-        # x_windows: (B, t_pos, k_idx, d_in)
-        # K: (L, d_out, d_in)
-        # Result: (B, t_pos, d_out)
-        K_t = K.transpose(1, 2)  # (L, d_in, d_out)
-        out = torch.einsum('btld, ldo -> bto', x_windows, K_t)
-        
-        return out
+# Extend the `DiagonalSSM` class to support a conv-style forward pass
+# that uses the kernel directly instead of unrolling through time.
 
 # %% + tags=["solution"]
-class DiagonalSSM_Conv_Vectorized(nn.Module):
+class DiagonalSSM(nn.Module):
     """
-    Uses convolution kernel:
-
-        K_k = C A_d^k B_d
+    Diagonal SSM supporting both RNN-style and Conv-style forward passes.
+    
+    The model stores stable parameters alpha, B, and C. The forward method
+    can be called with mode='rnn' (default) or mode='conv'.
     """
-
     def __init__(self, d_model=1, d_state=32):
         super().__init__()
-        self.ssm = DiagonalSSM_RNN(d_model, d_state)
+        self.d_state = d_state
+        # Stable init: A = -exp(alpha), where alpha is learnable
+        self.alpha = nn.Parameter(torch.randn(d_state))
+        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
 
-    def compute_kernel(self, L, dt=0.1):
-        """
-        Return kernel of shape (L, d_model, d_model)
-        """
+    @property
+    def A(self):
+        return -torch.exp(self.alpha)
 
-        A_d = self.ssm.A_d(dt)
-        B_d = self.ssm.B_d(dt)
-        C = self.ssm.C
-        # Vectorized kernel computation using diagonal representation.
-        # A_d: (d_state,), B_d: (d_state, d_model_in), C: (d_model_out, d_state)
-        # Build A_pows: (L, d_state) where A_pows[k, s] = A_d[s] ** k
+    def A_d(self, dt):
+        return torch.exp(dt * self.A)
+
+    def B_d(self, dt):
+        A_d_val = self.A_d(dt)
+        B_factor = (A_d_val - 1.0) / (self.A + 1e-5)
+        return B_factor.unsqueeze(-1) * self.B
+
+    def forward(self, x, dt=0.1, mode='rnn'):
+        """
+        x: (B, L, d_model)
+        dt: integration step size
+        mode: 'rnn' or 'conv'
+        return: (B, L, d_model)
+        """
+        if mode == 'rnn':
+            return self._forward_rnn(x, dt)
+        elif mode == 'conv':
+            return self._forward_conv(x, dt)
+        else:
+            raise ValueError(f"Unknown mode: {mode}. Choose 'rnn' or 'conv'.")
+
+    def _forward_rnn(self, x, dt):
+        """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
+        B, L, _ = x.shape
+        A_d, B_d = self.A_d(dt), self.B_d(dt)
+        h = torch.zeros(B, self.d_state, device=x.device)
+        os = []
+        for t in range(L):
+            x_t = x[:, t]
+            h = A_d * h + torch.matmul(x_t, B_d.transpose(0, 1))
+            o = torch.matmul(h, self.C.t())
+            os.append(o)
+        return torch.stack(os, dim=1)
+
+    def _compute_kernel(self, L, dt):
+        """Compute convolution kernel K[k] = C @ (A_d^k) @ B_d using vectorized operations."""
+        A_d = self.A_d(dt)
+        B_d = self.B_d(dt)
+        C = self.C
+        
+        # Vectorized kernel computation using diagonal representation
         device = A_d.device
         dtype = A_d.dtype
-        k_idx = torch.arange(L, device=device, dtype=dtype).unsqueeze(1)  # (L,1)
+        k_idx = torch.arange(L, device=device, dtype=dtype).unsqueeze(1)  # (L, 1)
         A_pows = A_d.unsqueeze(0) ** k_idx  # (L, d_state)
-
-        # terms: (L, d_state, d_model_in) = A_pows[...,None] * B_d[None,...]
+        
+        # terms: (L, d_state, d_model_in) = A_pows[..., None] * B_d[None, ...]
         terms = A_pows.unsqueeze(-1) * B_d.unsqueeze(0)
-
-        # Ks[l]_{o,in} = sum_s C[o,s] * terms[l,s,in]
+        
+        # Ks[l] = C @ terms[l] -> (L, d_model_out, d_model_in)
         Ks = torch.einsum("os, lsi -> loi", C, terms)
         return Ks
 
-    def forward(self, x, dt=0.1):
-        B, L, d = x.shape
-        K = self.compute_kernel(L, dt)  # (L, d_model, d_model)
-
-        # Causal convolution: o[t] = sum_{k=0}^{t} K[k] @ x[t-k]
-        # Vectorized using torch operations (no Python loops)
+    def _forward_conv(self, x, dt):
+        """
+        Conv-style forward using torch.nn.functional.conv1d.
+        x: (B, L, d_model)
+        """
+        B, L, d_model = x.shape
         
-        # Pad x on the left to create a window view
-        x_pad = nn.functional.pad(x, (0, 0, L - 1, 0))  # (B, 2L-1, d)
+        # 1. Compute the kernel: (L, d_model_out, d_model_in)
+        K = self._compute_kernel(L, dt) 
         
-        # Create causal window indices: for each t, get x[t:t+L] reversed
-        # indices[t, k] should point to x_pad[t + (L-1) - k]
-        t_idx = torch.arange(L, device=x.device).unsqueeze(1)  # (L, 1)
-        k_idx = torch.arange(L, device=x.device).unsqueeze(0)  # (1, L)
-        indices = (L - 1) + t_idx - k_idx  # (L, L)
-        indices = indices.clamp(0, 2 * L - 2)
+        # 2. Prepare x for conv1d: (B, d_model, L)
+        x_t = x.transpose(1, 2)
         
-        # Gather windows: (B, 2L-1, d) -> (B, L, L, d)
-        x_windows = x_pad[:, indices, :]  # (B, L, L, d)
+        # 3. Prepare K for conv1d: (out_channels, in_channels, kernel_size)
+        K_t = K.permute(1, 2, 0)
         
-        # Apply kernel via einsum
-        # x_windows: (B, t_pos, k_idx, d_in)
-        # K: (L, d_out, d_in)
-        # Result: (B, t_pos, d_out)
-        K_t = K.transpose(1, 2)  # (L, d_in, d_out)
-        out = torch.einsum('btld, ldo -> bto', x_windows, K_t)
+        # 4. Causal Padding: Add (kernel_size - 1) to the LEFT side of the temporal dim
+        x_padded = torch.nn.functional.pad(x_t, (L - 1, 0))
         
-        return out
+        # 5. Apply Convolution
+        # We flip the kernel when using conv1d because it performs cross-correlation.
+        out = torch.nn.functional.conv1d(x_padded, torch.flip(K_t, dims=[-1]))
+        
+        # 6. Back to (B, L, d_model)
+        return out.transpose(1, 2)
 
 # %% [markdown]
 # ## Part 4: FFT Convolution
@@ -355,18 +448,8 @@ class DiagonalSSM_Conv_Vectorized(nn.Module):
 # %%
 def fft_convolve(x, K):
     """
-    x: (B, L, d)
-    K: (L, d, d)
-    
-    TODO: Implement FFT convolution.
-    """
-    raise NotImplementedError("Implement FFT convolution.")
-
-# %% + tags=["solution"]
-def fft_convolve(x, K):
-    """
-    x: (B, L, d)
-    K: (L, d, d)
+    x: (B, L, d_in)
+    K: (L, d_in, d_out)
     """
 
     B, L, d = x.shape
@@ -375,88 +458,164 @@ def fft_convolve(x, K):
     x_f = torch.fft.rfft(x, n=fft_size, dim=1)
     K_f = torch.fft.rfft(K, n=fft_size, dim=0)
 
-    o_f = torch.einsum("bld,ldd->bld", x_f, K_f)
+    o_f = torch.einsum("bld, ldo -> blo", x_f, K_f)
     o = torch.fft.irfft(o_f, n=fft_size, dim=1)
 
     return o[:, :L]
 
+# %% + tags=["solution"]
+class DiagonalSSM(nn.Module):
+    """
+    Diagonal SSM supporting RNN-style, Conv-style, and FFT-based convolution.
+    
+    The forward method can be called with mode='rnn' (default), mode='conv', 
+    or mode='fft-conv' for FFT-accelerated convolution.
+    """
+    def __init__(self, d_model=1, d_state=32):
+        super().__init__()
+        self.d_state = d_state
+        # Stable init: A = -exp(alpha), where alpha is learnable
+        self.alpha = nn.Parameter(torch.randn(d_state))
+        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
+
+    @property
+    def A(self):
+        return -torch.exp(self.alpha)
+
+    def A_d(self, dt):
+        return torch.exp(dt * self.A)
+
+    def B_d(self, dt):
+        A_d_val = self.A_d(dt)
+        B_factor = (A_d_val - 1.0) / (self.A + 1e-5)
+        return B_factor.unsqueeze(-1) * self.B
+
+    def forward(self, x, dt=0.1, mode='rnn'):
+        """
+        x: (B, L, d_model)
+        dt: integration step size
+        mode: 'rnn', 'conv', or 'fft-conv'
+        return: (B, L, d_model)
+        """
+        if mode == 'rnn':
+            return self._forward_rnn(x, dt)
+        elif mode == 'conv':
+            return self._forward_conv(x, dt)
+        elif mode == 'fft-conv':
+            return self._forward_fft_conv(x, dt)
+        else:
+            raise ValueError(f"Unknown mode: {mode}. Choose 'rnn', 'conv', or 'fft-conv'.")
+
+    def _forward_rnn(self, x, dt):
+        """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
+        B, L, _ = x.shape
+        A_d, B_d = self.A_d(dt), self.B_d(dt)
+        h = torch.zeros(B, self.d_state, device=x.device)
+        os = []
+        for t in range(L):
+            x_t = x[:, t]
+            h = A_d * h + torch.matmul(x_t, B_d.transpose(0, 1))
+            o = torch.matmul(h, self.C.t())
+            os.append(o)
+        return torch.stack(os, dim=1)
+
+    def _compute_kernel(self, L, dt):
+        """Compute convolution kernel K[k] = C @ (A_d^k) @ B_d using vectorized operations."""
+        A_d = self.A_d(dt)
+        B_d = self.B_d(dt)
+        C = self.C
+        
+        # Vectorized kernel computation using diagonal representation
+        device = A_d.device
+        dtype = A_d.dtype
+        k_idx = torch.arange(L, device=device, dtype=dtype).unsqueeze(1)  # (L, 1)
+        A_pows = A_d.unsqueeze(0) ** k_idx  # (L, d_state)
+        
+        # terms: (L, d_state, d_model_in) = A_pows[..., None] * B_d[None, ...]
+        terms = A_pows.unsqueeze(-1) * B_d.unsqueeze(0)
+        
+        # Ks[l] = C @ terms[l] -> (L, d_model_out, d_model_in)
+        Ks = torch.einsum("os, lsi -> loi", C, terms)
+        return Ks
+
+    def _forward_conv(self, x, dt):
+        """
+        Conv-style forward using torch.nn.functional.conv1d.
+        x: (B, L, d_model)
+        """
+        B, L, d_model = x.shape
+        
+        # 1. Compute the kernel: (L, d_model_out, d_model_in)
+        K = self._compute_kernel(L, dt) 
+        
+        # 2. Prepare x for conv1d: (B, d_model, L)
+        x_t = x.transpose(1, 2)
+        
+        # 3. Prepare K for conv1d: (out_channels, in_channels, kernel_size)
+        K_t = K.permute(1, 2, 0)
+        
+        # 4. Causal Padding: Add (kernel_size - 1) to the LEFT side of the temporal dim
+        x_padded = torch.nn.functional.pad(x_t, (L - 1, 0))
+        
+        # 5. Apply Convolution
+        # We flip the kernel when using conv1d because it performs cross-correlation.
+        out = torch.nn.functional.conv1d(x_padded, torch.flip(K_t, dims=[-1]))
+        
+        # 6. Back to (B, L, d_model)
+        return out.transpose(1, 2)
+
+    def _forward_fft_conv(self, x, dt):
+        """FFT-based convolution for faster computation."""
+        B, L, d = x.shape
+        K = self._compute_kernel(L, dt)  # (L, d_model_out, d_model_in)
+        K = K.transpose(1, 2)  # (L, d_model_in, d_model_out)
+        return fft_convolve(x, K)
+
 # %% [markdown]
 # ## Part 5: Training and Evaluation
 #
-# **Question 7.** Implement the `train` function to train your SSM models.
-# Then train both the RNN-style and Conv-style versions on the toy dataset.
-# Compare their training curves and runtime performance.
-
-# %%
-def train(model, loader, epochs=10, lr=1e-3, dt=0.1):
-    """
-    TODO: Implement training loop using model(x, dt).
-    """
-    raise NotImplementedError("Implement training loop.")
+# **Question 7.** Train the RNN-style and Conv-style versions on the toy dataset.
+# Compare their training curves.
 
 # %% + tags=["solution"]
-def train(model, loader, epochs=10, lr=1e-3, dt=0.1):
+modes = ["rnn", "conv", "fft-conv"]
 
-    model.to(device)
-    opt = optim.Adam(model.parameters(), lr=lr)
-
-    for epoch in range(epochs):
-        total_loss = 0
-
-        for x, o in loader:
-            x, o = x.to(device), o.to(device)
-
-            pred = model(x, dt)
-            loss = ((pred - o) ** 2).mean()
-
-            opt.zero_grad()
-            loss.backward()
-            opt.step()
-
-            total_loss += loss.item()
-
-        print(f"Epoch {epoch:02d} | Loss: {total_loss/len(loader):.4f}")
-
-# %%
-dataset = ToyForecastDataset()
-loader = DataLoader(dataset, batch_size=32, shuffle=True)
-
-print("\nTraining RNN-style SSM")
-model_rnn = DiagonalSSM_RNN()
-train(model_rnn, loader)
-print("\nTraining Conv-style SSM (non-optimized)")
-model_conv_unopt = DiagonalSSM_Conv()
-train(model_conv_unopt, loader)
-
-print("\nTraining Conv-style SSM (vectorized)")
-model_conv_opt = DiagonalSSM_Conv_Vectorized()
-train(model_conv_opt, loader)
+for mode in modes:
+    print(f"\nTraining SSM with mode {mode}")
+    model_rnn = DiagonalSSM()
+    train(model_rnn, loader, forward_options={"mode": mode})
 
 # %% [markdown]
-# **Question 8.** Compare the runtime performance of RNN-style vs Conv-style SSM.
+# **Question 8.** Compare the runtime performance of RNN-style vs Conv-style SSM at inference.
 # Which one is faster? Can you explain why?
 
 # %%
-x, _ = next(iter(loader))
+x, _, dt = next(iter(loader))
 x = x.to(device)
+dt = dt.to(device)[0].to(x.dtype)
 n_repeats = 1000
-dt = 0.1
 
 print("\nTiming comparison (forward pass)...")
- 
-start = time.time()
-for _ in range(n_repeats):
-    _ = model_rnn(x, dt)
-print("RNN time:", (time.time() - start) / n_repeats)
 
-start = time.time()
-for _ in range(n_repeats):
-    _ = model_conv_unopt(x, dt)
-print("Conv (non-optimized) time:", (time.time() - start) / n_repeats)
+# TODO here
 
-start = time.time()
-for _ in range(n_repeats):
-    _ = model_conv_opt(x, dt)
-print("Conv (vectorized) time:", (time.time() - start) / n_repeats)
+print("\nDone.")
+
+# %% + tags=["solution"]
+x, _, dt = next(iter(loader))
+x = x.to(device)
+dt = dt.to(device)[0].to(x.dtype)
+n_repeats = 1000
+
+print("\nTiming comparison (forward pass)...")
+
+modes = ["rnn", "conv", "fft-conv"]
+
+for mode in modes:
+    start = time.time()
+    for _ in range(n_repeats):
+        _ = model_rnn(x, dt, mode=mode)
+    print(f"Timings (mode {mode}):", (time.time() - start) / n_repeats)
 
 print("\nDone.")
