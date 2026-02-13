@@ -127,6 +127,20 @@ with:
 
 // TODO here: on the right of the figure, add an illustration of the discrete system (boxes for $h_t$, arrows for the updates, etc.) to make it more concrete.
 
+--- 
+
+*Long-term memory: The parametrization trick*
+
+- Risk of vanishing for long-range terms (i.e., $overline(A)^k overline(B)$ could vanish for large $k$)
+- S4's solution: smart parametrization of $A$
+  - Typical choice: $A = V Lambda V^(-1)$ with eigenvalues of the form 
+    $
+      lambda_k (A) = -underbrace(alpha_k, > 0) + i omega_k
+    $
+  - $overline(A) = e^(A Delta) = V e^(Lambda Delta) V^(-1)$ with $lambda_k (overline(A)) = e^(-alpha_k Delta) e^(i omega_k Delta)$
+  - $overline(A)^k = V (e^(Lambda Delta))^k V^(-1)$ 
+  - If $alpha_k$ is small, we get long-range dependencies without vanishing (since $e^(-alpha_k Delta)$ is close to 1)
+
 ---
 
 *Efficient computation: The convolutional trick*
@@ -147,21 +161,9 @@ $
 
 #v(3em)
 
-Efficient implementation: compute the convolution using FFT
-
---- 
-
-*Long-term memory: The parametrization trick*
-
-- Risk of vanishing for long-range terms (i.e., $overline(A)^k overline(B)$ could vanish for large $k$)
-- S4's solution: smart parametrization of $A$
-  - Typical choice: $A = V Lambda V^(-1)$ with eigenvalues of the form 
-    $
-      lambda_k (A) = -underbrace(alpha_k, > 0) + i omega_k
-    $
-  - $overline(A) = e^(A Delta) = V e^(Lambda Delta) V^(-1)$ with $lambda_k (overline(A)) = e^(-alpha_k Delta) e^(i omega_k Delta)$
-  - $overline(A)^k = V (e^(Lambda Delta))^k V^(-1)$ 
-  - If $alpha_k$ is small, we get long-range dependencies without vanishing (since $e^(-alpha_k Delta)$ is close to 1)
+Efficient implementation: 
+- Easy-to-compute powers of $overline(A)$ (cf. parametrization trick)
+- Compute the convolution using FFT
 
 ---
 
@@ -172,7 +174,8 @@ Efficient implementation: compute the convolution using FFT
   $
     h (t) &= e^(A Delta) h (t-Delta) + (integral_0^Delta e^(A s) dif s) B x (t)
   $
-  on a sufficiently fine-grained grid (remember the constant $x(t)$ hypothesis)
+  on a sufficiently fine-grained grid \
+  (remember the constant $x(t)$ hypothesis)
 - We have:
   $
     integral_0^Delta e^(A s) dif s = A^(-1) (e^(A Delta) - I)
@@ -181,23 +184,54 @@ Efficient implementation: compute the convolution using FFT
 
 == Step 2: Input-dependent dynamics (Mamba)
 
-Pure linearity in SSMs:
-- ✓ Great long-range memory
-- ✗ Limited expressivity
+#grid(columns: (60%, 1fr),
+[
+  Pure linearity in SSMs: \
+  ✓ Great long-range memory \
+  ✗ Limited expressivity
 
-*Solution: Make dynamics input-dependent*
+  *Solution: Make dynamics input-dependent*
 
-$
-  cases(
-    h_(t) &= e^(-Delta_t A) h_(t-1) + B_t x^prime_(t),
-    o_(t) &= C_t h_(t)
+  $
+    cases(
+      h_(t) &= overline(A)_t h_(t-1) + overline(B)_t x_(t),
+      o_(t) &= overline(C)_t h_(t)
+    )
+  $
+  // with $Delta_t$, $B_t$, $C_t$, $x_t^prime$ linear in the input $x_t$
+
+  Now the state transition adapts to the input as in attention-based models
+],
+[
+  #image-with-caption(
+    image("fig/mamba.svg", width: 100%),
+    [Source: "Mamba: Linear-Time Sequence Modeling with Selective State Spaces", COLM'24]
   )
-$
-with $Delta_t$, $B_t$, $C_t$, $x_t^prime$ linear in the input $x_t$
-
-Now the state transition adapts to the input as in attention-based models
+])
 
 ---
+
+#grid(columns: (60%, 1fr),
+[
+  $
+    cases(
+      h_(t) &= overline(A)_t h_(t-1) + overline(B)_t x_(t),
+      o_(t) &= overline(C)_t h_(t)
+    )
+  $
+  where:
+  $
+    overline(A)_t &= exp(Delta_t A) \
+    overline(B)_t &= (exp(Delta_t A) - I) (Delta_t A)^(-1) Delta_t B
+  $
+  and $Delta_t$, $overline(C)_t$ are functions of $x_t$.
+],
+[
+  #image-with-caption(
+    image("fig/mamba.svg", width: 100%),
+    [Source: "Mamba: Linear-Time Sequence Modeling with Selective State Spaces", COLM'24]
+  )
+])
 
 == Mamba: Efficiency without convs
 
