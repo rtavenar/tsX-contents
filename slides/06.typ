@@ -84,7 +84,7 @@ $
   dot(h) (t) &= A h (t) + B x (t)
 $
 
-Let us discretize time with step $Delta$ between $t$ and $t+1$.
+*Goal:* discretize time with step $Delta$ between indexes `t-1` and `t`.
 1. Textbook ODE solving gives the following form for $h(t)$:
 
 $
