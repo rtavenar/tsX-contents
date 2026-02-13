@@ -88,13 +88,13 @@ loader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 # %%
 class DiagonalSSM(nn.Module):
-    def __init__(self, d_model=1, d_state=32):
+    def __init__(self, d_in=1, d_hidden=32):
         super().__init__()
-        self.d_state = d_state
+        self.d_hidden = d_hidden
         # Init. A, B, and C
-        self.A = nn.Parameter(torch.randn(d_state))
-        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
-        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
+        self.A = nn.Parameter(torch.randn(d_hidden))
+        self.B = nn.Parameter(torch.randn(d_hidden, d_in) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_in, d_hidden) * 0.1)
 
     def A_d(self, dt):
         # TODO: Compute discrete A_d
@@ -116,7 +116,7 @@ class DiagonalSSM(nn.Module):
         """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
         B, L, _ = x.shape
         A_d, B_d = self.A_d(dt), self.B_d(dt)
-        h = torch.zeros(B, self.d_state, device=x.device)
+        h = torch.zeros(B, self.d_hidden, device=x.device)
         os = []
         for t in range(L):
             x_t = x[:, t]
@@ -127,13 +127,13 @@ class DiagonalSSM(nn.Module):
 
 # %% + tags=["solution"]
 class DiagonalSSM(nn.Module):
-    def __init__(self, d_model=1, d_state=32):
+    def __init__(self, d_in=1, d_hidden=32):
         super().__init__()
-        self.d_state = d_state
+        self.d_hidden = d_hidden
         # Init. A, B, and C
-        self.A = nn.Parameter(torch.randn(d_state))
-        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
-        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
+        self.A = nn.Parameter(torch.randn(d_hidden))
+        self.B = nn.Parameter(torch.randn(d_hidden, d_in) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_in, d_hidden) * 0.1)
 
     def A_d(self, dt):
         return torch.exp(dt * self.A)
@@ -155,7 +155,7 @@ class DiagonalSSM(nn.Module):
         """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
         B, L, _ = x.shape
         A_d, B_d = self.A_d(dt), self.B_d(dt)
-        h = torch.zeros(B, self.d_state, device=x.device)
+        h = torch.zeros(B, self.d_hidden, device=x.device)
         os = []
         for t in range(L):
             x_t = x[:, t]
@@ -195,7 +195,7 @@ def train(model, loader, epochs=10, lr=1e-3, forward_options=None):
         print(f"Epoch {epoch:02d} | Loss: {total_loss/len(loader):.4f}")
 
 # Initialize and train the RNN model
-model = DiagonalSSM(d_model=1, d_state=32)
+model = DiagonalSSM(d_in=1, d_hidden=32)
 train(model, loader)
 
 # %% [markdown]
@@ -215,15 +215,15 @@ class DiagonalSSM(nn.Module):
     Trained in RNN-style after discretization.
     """
 
-    def __init__(self, d_model=1, d_state=32):
+    def __init__(self, d_in=1, d_hidden=32):
         super().__init__()
 
-        self.d_state = d_state
+        self.d_hidden = d_hidden
         # Stable init
         # TODO here: define alpha
         # self.alpha = ...
-        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
-        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
+        self.B = nn.Parameter(torch.randn(d_hidden, d_in) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_in, d_hidden) * 0.1)
 
     @property
     def A(self):
@@ -261,7 +261,7 @@ class DiagonalSSM(nn.Module):
         """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
         B, L, _ = x.shape
         A_d, B_d = self.A_d(dt), self.B_d(dt)
-        h = torch.zeros(B, self.d_state, device=x.device)
+        h = torch.zeros(B, self.d_hidden, device=x.device)
         os = []
         for t in range(L):
             x_t = x[:, t]
@@ -278,13 +278,13 @@ class DiagonalSSM(nn.Module):
     The model stores stable parameters alpha, B, and C.
     Implements RNN-style forward pass (unrolled discretized ODE).
     """
-    def __init__(self, d_model=1, d_state=32):
+    def __init__(self, d_in=1, d_hidden=32):
         super().__init__()
-        self.d_state = d_state
+        self.d_hidden = d_hidden
         # Stable init: A = -exp(alpha), where alpha is learnable
-        self.alpha = nn.Parameter(torch.randn(d_state))
-        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
-        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
+        self.alpha = nn.Parameter(torch.randn(d_hidden))
+        self.B = nn.Parameter(torch.randn(d_hidden, d_in) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_in, d_hidden) * 0.1)
 
     @property
     def A(self):
@@ -310,7 +310,7 @@ class DiagonalSSM(nn.Module):
         """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
         B, L, _ = x.shape
         A_d, B_d = self.A_d(dt), self.B_d(dt)
-        h = torch.zeros(B, self.d_state, device=x.device)
+        h = torch.zeros(B, self.d_hidden, device=x.device)
         os = []
         for t in range(L):
             x_t = x[:, t]
@@ -320,7 +320,7 @@ class DiagonalSSM(nn.Module):
         return torch.stack(os, dim=1)
 
 # Initialize and train the RNN model
-model = DiagonalSSM(d_model=1, d_state=32)
+model = DiagonalSSM(d_in=1, d_hidden=32)
 train(model, loader)
 
 # %% [markdown]
@@ -342,13 +342,13 @@ class DiagonalSSM(nn.Module):
     The model stores stable parameters alpha, B, and C. The forward method
     can be called with mode='rnn' (default) or mode='conv'.
     """
-    def __init__(self, d_model=1, d_state=32):
+    def __init__(self, d_in=1, d_hidden=32):
         super().__init__()
-        self.d_state = d_state
+        self.d_hidden = d_hidden
         # Stable init: A = -exp(alpha), where alpha is learnable
-        self.alpha = nn.Parameter(torch.randn(d_state))
-        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
-        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
+        self.alpha = nn.Parameter(torch.randn(d_hidden))
+        self.B = nn.Parameter(torch.randn(d_hidden, d_in) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_in, d_hidden) * 0.1)
 
     @property
     def A(self):
@@ -380,7 +380,7 @@ class DiagonalSSM(nn.Module):
         """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
         B, L, _ = x.shape
         A_d, B_d = self.A_d(dt), self.B_d(dt)
-        h = torch.zeros(B, self.d_state, device=x.device)
+        h = torch.zeros(B, self.d_hidden, device=x.device)
         os = []
         for t in range(L):
             x_t = x[:, t]
@@ -399,9 +399,9 @@ class DiagonalSSM(nn.Module):
         device = A_d.device
         dtype = A_d.dtype
         k_idx = torch.arange(L, device=device, dtype=dtype).unsqueeze(1)  # (L, 1)
-        A_pows = A_d.unsqueeze(0) ** k_idx  # (L, d_state)
+        A_pows = A_d.unsqueeze(0) ** k_idx  # (L, d_hidden)
         
-        # terms: (L, d_state, d_model_in) = A_pows[..., None] * B_d[None, ...]
+        # terms: (L, d_hidden, d_model_in) = A_pows[..., None] * B_d[None, ...]
         terms = A_pows.unsqueeze(-1) * B_d.unsqueeze(0)
         
         # Ks[l] = C @ terms[l] -> (L, d_model_out, d_model_in)
@@ -411,17 +411,17 @@ class DiagonalSSM(nn.Module):
     def _forward_conv(self, x, dt):
         """
         Conv-style forward using torch.nn.functional.conv1d.
-        x: (B, L, d_model)
+        x: (B, L, d_in)
         """
-        B, L, d_model = x.shape
+        B, L, d_in = x.shape
         
         # 1. Compute the kernel: (L, d_model_out, d_model_in)
         K = self._compute_kernel(L, dt) 
         
-        # 2. Prepare x for conv1d: (B, d_model, L)
+        # 2. Prepare x for conv1d: (B, d_model_in, L)
         x_t = x.transpose(1, 2)
         
-        # 3. Prepare K for conv1d: (out_channels, in_channels, kernel_size)
+        # 3. Prepare K for conv1d: (d_model_out, d_model_in, kernel_size)
         K_t = K.permute(1, 2, 0)
         
         # 4. Causal Padding: Add (kernel_size - 1) to the LEFT side of the temporal dim
@@ -431,7 +431,7 @@ class DiagonalSSM(nn.Module):
         # We flip the kernel when using conv1d because it performs cross-correlation.
         out = torch.nn.functional.conv1d(x_padded, torch.flip(K_t, dims=[-1]))
         
-        # 6. Back to (B, L, d_model)
+        # 6. Back to (B, L, d_model_out)
         return out.transpose(1, 2)
 
 # %% [markdown]
@@ -458,7 +458,7 @@ def fft_convolve(x, K):
     x_f = torch.fft.rfft(x, n=fft_size, dim=1)
     K_f = torch.fft.rfft(K, n=fft_size, dim=0)
 
-    o_f = torch.einsum("bld, ldo -> blo", x_f, K_f)
+    o_f = torch.einsum("bli, lio -> blo", x_f, K_f)
     o = torch.fft.irfft(o_f, n=fft_size, dim=1)
 
     return o[:, :L]
@@ -471,13 +471,13 @@ class DiagonalSSM(nn.Module):
     The forward method can be called with mode='rnn' (default), mode='conv', 
     or mode='fft-conv' for FFT-accelerated convolution.
     """
-    def __init__(self, d_model=1, d_state=32):
+    def __init__(self, d_in=1, d_hidden=32):
         super().__init__()
-        self.d_state = d_state
+        self.d_hidden = d_hidden
         # Stable init: A = -exp(alpha), where alpha is learnable
-        self.alpha = nn.Parameter(torch.randn(d_state))
-        self.B = nn.Parameter(torch.randn(d_state, d_model) * 0.1)
-        self.C = nn.Parameter(torch.randn(d_model, d_state) * 0.1)
+        self.alpha = nn.Parameter(torch.randn(d_hidden))
+        self.B = nn.Parameter(torch.randn(d_hidden, d_in) * 0.1)
+        self.C = nn.Parameter(torch.randn(d_in, d_hidden) * 0.1)
 
     @property
     def A(self):
@@ -493,10 +493,10 @@ class DiagonalSSM(nn.Module):
 
     def forward(self, x, dt=0.1, mode='rnn'):
         """
-        x: (B, L, d_model)
+        x: (B, L, d_in)
         dt: integration step size
         mode: 'rnn', 'conv', or 'fft-conv'
-        return: (B, L, d_model)
+        return: (B, L, d_out)
         """
         if mode == 'rnn':
             return self._forward_rnn(x, dt)
@@ -511,7 +511,7 @@ class DiagonalSSM(nn.Module):
         """RNN-style forward: h[t+1] = A_d * h[t] + B_d * x[t]"""
         B, L, _ = x.shape
         A_d, B_d = self.A_d(dt), self.B_d(dt)
-        h = torch.zeros(B, self.d_state, device=x.device)
+        h = torch.zeros(B, self.d_hidden, device=x.device)
         os = []
         for t in range(L):
             x_t = x[:, t]
@@ -530,9 +530,9 @@ class DiagonalSSM(nn.Module):
         device = A_d.device
         dtype = A_d.dtype
         k_idx = torch.arange(L, device=device, dtype=dtype).unsqueeze(1)  # (L, 1)
-        A_pows = A_d.unsqueeze(0) ** k_idx  # (L, d_state)
+        A_pows = A_d.unsqueeze(0) ** k_idx  # (L, d_hidden)
         
-        # terms: (L, d_state, d_model_in) = A_pows[..., None] * B_d[None, ...]
+        # terms: (L, d_hidden, d_model_in) = A_pows[..., None] * B_d[None, ...]
         terms = A_pows.unsqueeze(-1) * B_d.unsqueeze(0)
         
         # Ks[l] = C @ terms[l] -> (L, d_model_out, d_model_in)
@@ -549,20 +549,20 @@ class DiagonalSSM(nn.Module):
         # 1. Compute the kernel: (L, d_model_out, d_model_in)
         K = self._compute_kernel(L, dt) 
         
-        # 2. Prepare x for conv1d: (B, d_model, L)
+        # 2. Prepare x for conv1d: (B, d_model_in, L)
         x_t = x.transpose(1, 2)
         
-        # 3. Prepare K for conv1d: (out_channels, in_channels, kernel_size)
+        # 3. Prepare K for conv1d: (d_model_out, d_model_in, L)
         K_t = K.permute(1, 2, 0)
         
-        # 4. Causal Padding: Add (kernel_size - 1) to the LEFT side of the temporal dim
+        # 4. Causal Padding: Add (L - 1) to the LEFT side of the temporal dim
         x_padded = torch.nn.functional.pad(x_t, (L - 1, 0))
         
         # 5. Apply Convolution
         # We flip the kernel when using conv1d because it performs cross-correlation.
         out = torch.nn.functional.conv1d(x_padded, torch.flip(K_t, dims=[-1]))
         
-        # 6. Back to (B, L, d_model)
+        # 6. Back to (B, L, d_model_out)
         return out.transpose(1, 2)
 
     def _forward_fft_conv(self, x, dt):
