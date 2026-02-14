@@ -129,20 +129,6 @@ with:
 
 --- 
 
-*Long-term memory: The parametrization trick*
-
-- Risk of vanishing for long-range terms (i.e., $overline(A)^k overline(B)$ could vanish for large $k$)
-- S4's solution: smart parametrization of $A$
-  - Typical choice: $A = V Lambda V^(-1)$ with eigenvalues of the form 
-    $
-      lambda_k (A) = -underbrace(alpha_k, > 0) + i omega_k
-    $
-  - $overline(A) = e^(A Delta) = V e^(Lambda Delta) V^(-1)$ with $lambda_k (overline(A)) = e^(-alpha_k Delta) e^(i omega_k Delta)$
-  - $overline(A)^k = V (e^(Lambda Delta))^k V^(-1)$ 
-  - If $alpha_k$ is small, we get long-range dependencies without vanishing (since $e^(-alpha_k Delta)$ is close to 1)
-
----
-
 *Efficient computation: The convolutional trick*
 
 Let us assume $h_0 = 0$, then we get:
@@ -162,25 +148,39 @@ $
 #v(3em)
 
 Efficient implementation: 
-- Easy-to-compute powers of $overline(A)$ (cf. parametrization trick)
+- Easy-to-compute powers of $overline(A)$ (cf. parametrization, next slide)
 - Compute the convolution using FFT
 
 ---
 
-*Recovering continuous-time dynamics*
+*Long-term memory: The parametrization trick*
 
-- Easy since S4 parametrizes $A$ directly 
-- Just need to compute
-  $
-    h (t) &= e^(A Delta) h (t-Delta) + (integral_0^Delta e^(A s) dif s) B x (t)
-  $
-  on a sufficiently fine-grained grid \
-  (remember the constant $x(t)$ hypothesis)
-- We have:
-  $
-    integral_0^Delta e^(A s) dif s = A^(-1) (e^(A Delta) - I)
-  $
-  since $A$ is invertible, we're good to go!
+- Risk of vanishing for long-range terms (i.e., $overline(A)^k overline(B)$ could vanish for large $k$)
+- S4's solution: smart parametrization of $A$
+  - Typical choice: $A = V Lambda V^(-1)$ with eigenvalues of the form 
+    $
+      lambda_j (A) = -underbrace(alpha_j, > 0) + i omega_j
+    $
+  - $overline(A) = e^(A Delta) = V e^(Lambda Delta) V^(-1)$ with $lambda_j (overline(A)) = e^(-alpha_j Delta) e^(i omega_j Delta)$
+  - $overline(A)^k = V (e^(Lambda Delta))^k V^(-1)$ 
+  - Small $alpha_j$ $=>$ $e^(-alpha_j Delta) approx 1$ $=>$ long-term memory
+
+// ---
+// Commented out below since this is exactly the time discretization we've described above
+// *Recovering continuous-time dynamics*
+
+// - Easy since S4 parametrizes $A$ directly 
+// - Just need to compute
+//   $
+//     h (t) &= e^(A Delta) h (t-Delta) + (integral_0^Delta e^(A s) dif s) B x (t)
+//   $
+//   on a sufficiently fine-grained grid \
+//   (remember the constant $x(t)$ hypothesis)
+// - We have:
+//   $
+//     integral_0^Delta e^(A s) dif s = A^(-1) (e^(A Delta) - I)
+//   $
+//   since $A$ is invertible, we're good to go!
 
 == Step 2: Input-dependent dynamics (Mamba)
 
