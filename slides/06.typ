@@ -131,19 +131,24 @@ $
 
 ---
 
-Now we have the discrete system:
+#grid(columns: (70%, 1fr),
+[
+  Now we have the discrete system:
 
-$
-  cases(
-    h_(t) &= overline(A) h_(t-1) + overline(B) x_(t),
-    o_(t) &= overline(C) h_(t)
-  )
-$
+  $
+    cases(
+      h_(t) &= overline(A) h_(t-1) + overline(B) x_(t),
+      o_(t) &= overline(C) h_(t)
+    )
+  $
 
-with:
-- $overline(A) = e^(A Delta)$
-- $overline(B) = (integral_0^Delta e^(A s) dif s) B$
-- $overline(C) = C$
+  with:
+  - $overline(A) = e^(A Delta)$ // (RNN-Decay style)
+  - $overline(B) = (integral_0^Delta e^(A s) dif s) B =  A^(-1) (e^(A Delta) - I) B$
+  - $overline(C) = C$
+],[
+  #image("fig/node_irregular_viz.svg", width: 100%)
+])
 
 *Main idea behind S4*: Parametrize $A$, $B$, $C$ such that the resulting discrete system has good properties (efficient computation, stable training, long memory).
 
