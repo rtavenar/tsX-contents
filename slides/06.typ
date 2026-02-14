@@ -69,6 +69,28 @@ $
 
 In practice, we often set $D=0$ for simplicity (can be later recovered through residual connection in Deep SSM anyway).
 
+== SSMs vs Neural ODEs
+
+#grid(columns: (50%, 1fr),
+[
+  #v(3em)
+  *SSMs*
+  $
+    dot(h) (t) &= A h (t) + B x (t)
+  $
+  - Linear dynamics specified with respect to the hidden state $h(t)$
+  #v(1fr)
+],
+[
+  #v(3em)
+  *Neural ODEs*
+  $
+    dot(x) (t) &= f_theta (x (t))
+  $
+  - Non-linear dynamics specified with respect to the input $x(t)$
+  #v(1fr)
+])
+
 == Step 1: Time discretization (S4)
 
 #align(center)[
