@@ -165,7 +165,7 @@ class DiagonalSSM(nn.Module):
         return torch.stack(os, dim=1)
     
 # %% [markdown]
-# **Question 3.** Now train your model on the following dataset.
+# **Question 3.** Now train your model on the provided dataset.
 # What do you observe?
 
 # %%
@@ -194,6 +194,7 @@ def train(model, loader, epochs=10, lr=1e-3, forward_options=None):
 
         print(f"Epoch {epoch:02d} | Loss: {total_loss/len(loader):.4f}")
 
+# %% + tags=["solution"]
 # Initialize and train the RNN model
 model = DiagonalSSM(d_in=1, d_hidden=32)
 train(model, loader)
@@ -545,6 +546,7 @@ class DiagonalSSM(nn.Module):
 # ```
 #
 # where ⊙ denotes element-wise multiplication.
+# 
 # **Question 6.** Using this implementation, add an "fft-conv" mode to the forward 
 # of your model that would rely on this trick rather than computing the actual convolution.
 
