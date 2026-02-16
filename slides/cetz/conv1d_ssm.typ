@@ -17,6 +17,7 @@
   let T = 10
   let seed = 0
   let c = none
+  let pos = 6
 
   // Draw points
   for t in range(T) {
@@ -27,8 +28,12 @@
       stroke: c,
       name: "x_" + str(t)
     )
+    if (t < pos) {
+      content((t, 0.), text(size: 10pt)[$x_(t-#(10 - t - 4))$])
+    } else if (t == pos) {
+      content((t, 0.), text(size: 10pt)[$x_t$])
+    }
   }
-  content((6, 0.), text(size: 10pt)[$x_t$])
   content((T, 0.1), text(size: 16pt)[...])
 
   // Draw filter
@@ -51,7 +56,6 @@
   content((-5, 0), text(size: 16pt)[Time series])
 
 
-  let pos = 6
   // content((pos, -1.0), text(newlink, size: 28pt, [$x_t$]))
   rect((pos - 6.5, - .4), (pos + .5, .4), radius: 3pt, name: "subseries")
 

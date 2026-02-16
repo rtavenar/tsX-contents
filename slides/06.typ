@@ -45,8 +45,8 @@
 
 #align(center)[
   #image-with-caption(
-    image("fig/ssm_3views.png", width: 100%),
-    [Source: "Structured State Spaces: Combining Continuous-Time, Recurrent, and Convolutional Models", a blogpost by by Albert Gu et al. (2022)]
+    image("fig/ssm_3views.svg", width: 90%),
+    [Source: "Combining Recurrent, Convolutional, and Continuous-time Models with Linear State-Space Layers", NeurIPS'21, by Albert Gu et al.]
   )
 ]
 
@@ -131,7 +131,7 @@ $
 
 ---
 
-#grid(columns: (70%, 1fr),
+#grid(columns: (60%, 1fr),
 [
   Now we have the discrete system:
 
@@ -144,7 +144,8 @@ $
 
   with:
   - $overline(A) = e^(A Delta)$ // (RNN-Decay style)
-  - $overline(B) = (integral_0^Delta e^(A s) dif s) B =  A^(-1) (e^(A Delta) - I) B$
+  - $overline(B) &= (integral_0^Delta e^(A s) dif s) B \
+  &=  A^(-1) (e^(A Delta) - I) B$
   - $overline(C) = C$
 ],[
   #image("fig/node_irregular_viz.svg", width: 100%)
@@ -182,13 +183,15 @@ Efficient implementation:
 
 *Long-term memory: The parametrization trick*
 
-- Risk of vanishing for long-range terms (i.e., $overline(A)^k overline(B)$ could vanish for large $k$)
+- Risk of vanishing / exploding for long-range terms ($overline(A)^k overline(B)$)
 - S4's solution: smart parametrization of $A$
+  #pause
   - Typical choice: $A = V Lambda V^(-1)$ with eigenvalues of the form 
     $
       lambda_j (A) = -underbrace(alpha_j, > 0) + i omega_j
     $
   - $overline(A) = e^(A Delta) = V e^(Lambda Delta) V^(-1)$ with $lambda_j (overline(A)) = e^(-alpha_j Delta) e^(i omega_j Delta)$
+  #pause
   - $overline(A)^k = V (e^(Lambda Delta))^k V^(-1)$ 
   - Small $alpha_j$ $=>$ $e^(-alpha_j Delta) approx 1$ $=>$ long-term memory
 
