@@ -1,6 +1,7 @@
 # Deep Learning for Time Series
 
-Welcome to the course materials for **Deep Learning for Time Series**. This course provides a comprehensive dive into modern neural network architectures specifically tailored for temporal data, ranging from fundamental concepts to advanced sequence modeling.
+Welcome to the course materials for **Deep Learning for Time Series**. This course is part of the data science master programme at IP Paris.
+The course provides a comprehensive dive into modern neural network architectures specifically tailored for temporal data, ranging from fundamental concepts to advanced sequence modeling.
 
 - **Target Audience:** Data scientists, researchers, and students with a basic knowledge of Machine Learning and Deep Learning.
 
@@ -60,7 +61,7 @@ Welcome to the course materials for **Deep Learning for Time Series**. This cour
 
 ## About the Instructor
 
-**Romain Tavenard** is a Professor at _Université de Rennes 2_ and a researcher specializing in Machine Learning for Time Series.
+**Romain Tavenard** is a Professor at _Université de Rennes 2_ and a researcher specializing in Machine Learning for Time Series. He is the creator of the [`tslearn`](https://github.com/tslearn-team/tslearn) library.
 
 - [Personal Website](https://rtavenar.github.io)
 - [Bluesky](https://bsky.app/profile/rtavenar.bsky.social)
