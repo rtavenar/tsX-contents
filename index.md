@@ -4,6 +4,7 @@ Welcome to the course materials for **Deep Learning for Time Series**. This cour
 The course provides a comprehensive dive into modern neural network architectures specifically tailored for temporal data, ranging from fundamental concepts to advanced sequence modeling.
 
 - **Target Audience:** Data scientists, researchers, and students with a basic knowledge of Machine Learning and Deep Learning.
+- [Github Repository for the course materials](https://github.com/rtavenar/x-dl4ts) (Notebooks for lab sessions, Typst code for slides, etc.)
 
 ## Course Modules
 
