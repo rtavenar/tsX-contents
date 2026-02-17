@@ -14,6 +14,13 @@ The course provides a comprehensive dive into modern neural network architecture
 
 ---
 
+### Practical aspects of forecasting
+
+
+| <img src="./assets/img/03b.png" width="300px" alt="Intro Illustration"> | **Overview:** From multi-step forecasting to uncertainty estimation: practical tips and tricks.<br><br> [Slide Deck (PDF)](./slides/03b.pdf)
+
+---
+
 ### Convolutional Neural Networks &  Recurrent Neural Networks
 
 
@@ -25,13 +32,6 @@ The course provides a comprehensive dive into modern neural network architecture
 
 
 | <img src="./assets/img/03.png" width="300px" alt="Intro Illustration"> | **Overview:** How self-attention revolutionized sequence modeling.<br><br> [Slide Deck (PDF)](./slides/03.pdf) |
-
----
-
-### Practical aspects of forecasting
-
-
-| <img src="./assets/img/03b.png" width="300px" alt="Intro Illustration"> | **Overview:** From multi-step forecasting to uncertainty estimation: practical tips and tricks.<br><br> [Slide Deck (PDF)](./slides/03b.pdf)
 
 ---
 
