@@ -10,11 +10,11 @@ The course provides a comprehensive dive into modern neural network architecture
 ### Introduction to DL for Time Series
 
 
-| <img src="./assets/img/01.png" width="300px" alt="Intro Illustration"> | **Overview:** An overview of why time series require specific deep learning approaches.<br><br> [Slide Deck (PDF)](./slides/01.pdf) |
+| <img src="./assets/img/01.png" width="300px" alt="Intro Illustration"> | **Overview:** A quick overview of "standard" (ie. non-deep) approaches for time series forecasting.<br><br> [Slide Deck (PDF)](./slides/01.pdf) |
 
 ---
 
-### Convolutional Neural Networks (1D-CNNs) &  Recurrent Neural Networks (RNNs)
+### Convolutional Neural Networks &  Recurrent Neural Networks
 
 
 | <img src="./assets/img/02.png" width="300px" alt="Intro Illustration"> | **Overview:** Extracting local patterns vs capturing temporal dependencies.<br><br> [Slide Deck (PDF)](./slides/02.pdf)
@@ -33,8 +33,9 @@ The course provides a comprehensive dive into modern neural network architecture
 
 | <img src="./assets/img/03b.png" width="300px" alt="Intro Illustration"> | **Overview:** From multi-step forecasting to uncertainty estimation: practical tips and tricks.<br><br> [Slide Deck (PDF)](./slides/03b.pdf)
 
-### Time Series Classification
+---
 
+### Time Series Classification
 
 | <img src="./assets/img/04.png" width="300px" alt="Intro Illustration"> | **Overview:** How to classify sequences using deep learning architectures.<br><br> [Slide Deck (PDF)](./slides/04.pdf) |
 
