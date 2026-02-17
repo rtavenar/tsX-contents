@@ -1,0 +1,18 @@
+# Course Website Configuration
+title: Deep Learning for Time Series
+# description: Comprehensive course materials on modern neural architectures for temporal data.
+theme: jekyll-theme-minimal
+
+# Navigation & Identity
+repository: rtavenar/tsX-contents
+# show_downloads: true
+# google_analytics: # Add your UA-code here if you want to track visitors
+
+# Social / Author Info (Optional - appears in some themes)
+author:
+  name: Romain Tavenard
+  url: https://rtavenar.github.io
+
+# Header buttons (Specific to some themes like Cayman)
+github:
+  is_project_page: true
