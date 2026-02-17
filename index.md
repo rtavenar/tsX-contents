@@ -73,4 +73,5 @@ In many fields—from finance to healthcare—data is collected over time. This 
 
 **Romain Tavenard** is a Professor at _Université de Rennes 2_ and a researcher specializing in Machine Learning for Time Series.
 
-[Personal Website](https://rtavenar.github.io) | [Bluesky](https://bsky.app/profile/rtavenar.bsky.social)
+- [Personal Website](https://rtavenar.github.io)
+- [Bluesky](https://bsky.app/profile/rtavenar.bsky.social)
