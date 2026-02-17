@@ -2,9 +2,6 @@
 
 Welcome to the course materials for **Deep Learning for Time Series**. This course provides a comprehensive dive into modern neural network architectures specifically tailored for temporal data, ranging from fundamental concepts to advanced sequence modeling.
 
-## Course Overview
-In many fields—from finance to healthcare—data is collected over time. This course explores how to leverage Deep Learning to extract patterns, forecast future values, and classify complex sequences.
-
 - **Target Audience:** Data scientists, researchers, and students with a basic knowledge of Machine Learning and Deep Learning.
 
 ## Course Modules
