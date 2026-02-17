@@ -2,9 +2,7 @@
 ---
 @import "{{ site.theme }}";
 
-h1 > a[href="https://github.com/rtavenar/x-dl4ts/"] {
-    display: none;
-}
+h1:first-of-type { display: none; }
 
 // 2. Make all tables invisible (no borders, no backgrounds)
 .markdown-body table, 
