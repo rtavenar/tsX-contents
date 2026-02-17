@@ -2,7 +2,15 @@
 ---
 @import "{{ site.theme }}";
 
-table, th, td {
-  border: none !important;
-  background-color: transparent !important;
+h1 > a[href="https://github.com/rtavenar/x-dl4ts/"] {
+    display: none;
+}
+
+// 2. Make all tables invisible (no borders, no backgrounds)
+.markdown-body table, 
+.markdown-body td, 
+.markdown-body th, 
+.markdown-body tr {
+    border: none !important;
+    background-color: transparent !important;
 }
