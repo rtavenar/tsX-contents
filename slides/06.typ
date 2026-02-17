@@ -148,7 +148,12 @@ $
   &=  A^(-1) (e^(A Delta) - I) B$
   - $overline(C) = C$
 ],[
-  #image("fig/node_irregular_viz.svg", width: 100%)
+  #image-with-caption(
+    align(center)[
+      #image("fig/node_irregular_viz.svg", width: 90%)
+    ],
+    [Source: "Latent ODEs for Irregularly-Sampled Time Series", NeurIPS'20]
+  )
 ])
 
 *Main idea behind S4*: Parametrize $A$, $B$, $C$ such that the resulting discrete system has good properties (efficient computation, stable training, long memory).
