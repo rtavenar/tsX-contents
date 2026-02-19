@@ -1,3 +1,16 @@
+---
+layout: default
+title: Deep Learning for Time Series
+description: Course materials and slides for a course at IP Paris on deep learning for time series forecasting and classification.
+---
+
+<head>
+  <meta property="og:image" content="https://rtavenar.github.io/x-dl4ts/assets/img/social-preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+</head>
+
 # Deep Learning for Time Series
 
 Welcome to the course materials for **Deep Learning for Time Series**. This course is part of the data science master programme at IP Paris.
