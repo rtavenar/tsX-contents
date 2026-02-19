@@ -7,6 +7,9 @@ theme: jekyll-theme-minimal
 repository: rtavenar/x-dl4ts
 # show_downloads: true
 # google_analytics: # Add your UA-code here if you want to track visitors
+url: "https://rtavenar.github.io"
+baseurl: "/x-dl4ts"
+og_image: "/assets/img/social-preview.png"
 image: /assets/img/social-preview.png
 
 # Social / Author Info (Optional - appears in some themes)
