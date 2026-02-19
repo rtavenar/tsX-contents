@@ -4,9 +4,10 @@ title: Deep Learning for Time Series
 theme: jekyll-theme-minimal
 
 # Navigation & Identity
-repository: rtavenar/tsX-contents
+repository: rtavenar/x-dl4ts
 # show_downloads: true
 # google_analytics: # Add your UA-code here if you want to track visitors
+image: /assets/img/social-preview.png
 
 # Social / Author Info (Optional - appears in some themes)
 author:

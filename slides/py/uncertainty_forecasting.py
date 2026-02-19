@@ -91,10 +91,21 @@ ax.grid(True, alpha=0.3)
 ylim = ax.get_ylim()
 ax.set_yticklabels([])
 ax.set_xticklabels([])
-# ax.text(n_past + n_future/2, ylim[1] * 0.95, 
-#         'Forecast horizon', ha='center', fontsize=10, 
-#         bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+fig = plt.gcf()
 
 plt.tight_layout()
 plt.savefig('slides/fig/uncertainty_forecasting.svg', bbox_inches='tight')
-plt.close()
+
+# Additional
+fig_width, fig_height = 12, 6.3 
+fig.set_size_inches(fig_width, fig_height)
+
+plt.savefig(
+    'assets/img/social-preview.png', 
+    dpi=100, 
+    bbox_inches='tight', 
+    pad_inches=0.5, # Adds a nice margin so the plot isn't cut off
+    facecolor='white' # Ensures background isn't transparent
+)
+plt.close(fig)
